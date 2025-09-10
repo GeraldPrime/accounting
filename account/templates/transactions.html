@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Transactions - Real Estate Accounting{% endblock %}
+
+{% block content %}
+<section class="content-main">
+  <div class="content-header">
+    <div>
+      <h2 class="content-title card-title">Transactions</h2>
+      <p>View and manage all financial transactions</p>
+    </div>
+    <div>
+      <a class="btn btn-primary" href="{% url 'add_transaction' %}">
+        <i class="material-icons md-add"></i>Add Transaction
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title">Filter Transactions</h5>
+    </div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        {% if user.user_type == 'super_admin' %}
+        <div class="col-md-4">
+          <label class="form-label">Branch</label>
+          <select name="branch" class="form-control">
+            <option value="">All Branches</option>
+            {% for branch in branches %}
+              <option value="{{ branch.id }}" {% if request.GET.branch == branch.id|stringformat:"s" %}selected{% endif %}>
+                {{ branch.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="col-md-4">
+          <label class="form-label">Transaction Type</label>
+          <select name="type" class="form-control">
+            <option value="">All Types</option>
+            <option value="income" {% if request.GET.type == 'income' %}selected{% endif %}>Income</option>
+            <option value="expenditure" {% if request.GET.type == 'expenditure' %}selected{% endif %}>Expenditure</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary me-2">Filter</button>
+          <a href="{% url 'transactions' %}" class="btn btn-outline-secondary">Clear</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title">Transaction History</h5>
+    </div>
+    <div class="card-body">
+      {% if transactions %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                {% if user.user_type == 'super_admin' %}
+                <th>Branch</th>
+                {% endif %}
+                <th>Type</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Created By</th>
+                <th>Created Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in transactions %}
+              <tr>
+                <td>
+                  <strong>{{ transaction.date|date:"M d, Y" }}</strong>
+                </td>
+                {% if user.user_type == 'super_admin' %}
+                <td>
+                  <span class="badge bg-info">{{ transaction.branch.name }}</span>
+                </td>
+                {% endif %}
+                <td>
+                  {% if transaction.transaction_type == 'income' %}
+                    <span class="badge bg-success">
+                      <i class="material-icons md-trending_up me-1"></i>Income
+                    </span>
+                  {% else %}
+                    <span class="badge bg-danger">
+                      <i class="material-icons md-trending_down me-1"></i>Expenditure
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="text-truncate" style="max-width: 200px;" title="{{ transaction.description }}">
+                    {{ transaction.description }}
+                  </div>
+                </td>
+                <td>
+                  {% if transaction.income_category %}
+                    <span class="badge bg-light text-dark">{{ transaction.income_category.name }}</span>
+                  {% elif transaction.expenditure_category %}
+                    <span class="badge bg-light text-dark">{{ transaction.expenditure_category.name }}</span>
+                  {% else %}
+                    <span class="text-muted">No category</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong class="{% if transaction.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                    {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₦{{ transaction.amount|floatformat:2 }}
+                  </strong>
+                </td>
+                <td>
+                  <small class="text-muted">{{ transaction.created_by.get_full_name|default:transaction.created_by.username }}</small>
+                </td>
+                <td>
+                  <small class="text-muted">{{ transaction.created_date|date:"M d, Y H:i" }}</small>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Summary Footer -->
+        <div class="row mt-4">
+          <div class="col-md-12">
+            <div class="card bg-light">
+              <div class="card-body">
+                <div class="row text-center">
+                  <div class="col-md-4">
+                    <h6 class="text-success">Total Income</h6>
+                    <h5 class="text-success">₦{{ total_income|floatformat:2 }}</h5>
+                  </div>
+                  <div class="col-md-4">
+                    <h6 class="text-danger">Total Expenditure</h6>
+                    <h5 class="text-danger">₦{{ total_expenditure|floatformat:2 }}</h5>
+                  </div>
+                  <div class="col-md-4">
+                    <h6 class="text-primary">Net Balance</h6>
+                    <h5 class="text-primary {% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ net_balance|floatformat:2 }}</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <div class="text-center py-5">
+          <i class="material-icons md-receipt_long" style="font-size: 4rem; color: #ccc;"></i>
+          <h5 class="mt-3 text-muted">No transactions found</h5>
+          <p class="text-muted">No transactions match your current filters.</p>
+          <a href="{% url 'add_transaction' %}" class="btn btn-primary">
+            <i class="material-icons md-add me-2"></i>Add Your First Transaction
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination would go here if needed -->
+  <div class="pagination-area mt-30 mb-50">
+    <nav aria-label="Transaction pagination">
+      <ul class="pagination justify-content-center">
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <!-- Add more pagination logic here if needed -->
+      </ul>
+    </nav>
+  </div>
+
+</section>
+{% endblock content %}

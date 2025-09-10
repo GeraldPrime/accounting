@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Allocate Funds - Real Estate Accounting{% endblock %}
+
+{% block content %}
+<section class="content-main">
+  <div class="content-header">
+    <div>
+      <h2 class="content-title card-title">Allocate Funds</h2>
+      <p>Allocate funds from main branch to sub branches</p>
+    </div>
+    <div>
+      <a class="btn btn-outline-primary" href="{% url 'fund_allocations' %}">
+        <i class="material-icons md-arrow_back"></i>View Allocations
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ form.to_branch.id_for_label }}" class="form-label">Target Branch *</label>
+              {{ form.to_branch }}
+              {% if form.to_branch.errors %}
+                <div class="text-danger">{{ form.to_branch.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ form.amount.id_for_label }}" class="form-label">Amount *</label>
+              <div class="input-group">
+                <span class="input-group-text">₦</span>
+                {{ form.amount }}
+              </div>
+              {% if form.amount.errors %}
+                <div class="text-danger">{{ form.amount.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.description.id_for_label }}" class="form-label">Description *</label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <div class="text-danger">{{ form.description.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'fund_allocations' %}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary">Allocate Funds</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock content %}

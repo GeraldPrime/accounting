@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Categories - Real Estate Accounting{% endblock %}
+
+{% block content %}
+<section class="content-main">
+  <div class="content-header">
+    <div>
+      <h2 class="content-title card-title">Manage Categories</h2>
+      <p>Organize income and expenditure categories</p>
+    </div>
+    <div>
+      <a class="btn btn-success me-2" href="{% url 'add_income_category' %}">
+        <i class="material-icons md-add"></i>Add Income Category
+      </a>
+      <a class="btn btn-danger" href="{% url 'add_expenditure_category' %}">
+        <i class="material-icons md-add"></i>Add Expenditure Category
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Income Categories -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title text-success">
+            <i class="material-icons md-trending_up me-2"></i>Income Categories
+          </h5>
+          <span class="badge bg-success">{{ income_categories.count }}</span>
+        </div>
+        <div class="card-body">
+          {% if income_categories %}
+            <div class="list-group list-group-flush">
+              {% for category in income_categories %}
+              <div class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="ms-2 me-auto">
+                  <div class="fw-bold">{{ category.name }}</div>
+                  {% if category.description %}
+                    <small class="text-muted">{{ category.description|truncatechars:100 }}</small>
+                  {% endif %}
+                  <div class="mt-1">
+                    {% if category.is_global %}
+                      <span class="badge bg-primary">Global</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ category.branch.name }}</span>
+                    {% endif %}
+                    <small class="text-muted ms-2">
+                      Created by: {{ category.created_by.get_full_name|default:category.created_by.username }}
+                    </small>
+                  </div>
+                </div>
+                {% if category.created_by == user or user.user_type == 'super_admin' %}
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-primary btn-sm" title="Edit">
+                    <i class="material-icons md-edit"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" title="Delete" 
+                          onclick="confirmDelete('{{ category.name }}', 'income')">
+                    <i class="material-icons md-delete"></i>
+                  </button>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="material-icons md-category" style="font-size: 3rem; color: #ccc;"></i>
+              <p class="text-muted mt-2">No income categories created yet.</p>
+              <a href="{% url 'add_income_category' %}" class="btn btn-success btn-sm">
+                <i class="material-icons md-add me-2"></i>Add Income Category
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Expenditure Categories -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title text-danger">
+            <i class="material-icons md-trending_down me-2"></i>Expenditure Categories
+          </h5>
+          <span class="badge bg-danger">{{ expenditure_categories.count }}</span>
+        </div>
+        <div class="card-body">
+          {% if expenditure_categories %}
+            <div class="list-group list-group-flush">
+              {% for category in expenditure_categories %}
+              <div class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="ms-2 me-auto">
+                  <div class="fw-bold">{{ category.name }}</div>
+                  {% if category.description %}
+                    <small class="text-muted">{{ category.description|truncatechars:100 }}</small>
+                  {% endif %}
+                  <div class="mt-1">
+                    {% if category.is_global %}
+                      <span class="badge bg-primary">Global</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ category.branch.name }}</span>
+                    {% endif %}
+                    <small class="text-muted ms-2">
+                      Created by: {{ category.created_by.get_full_name|default:category.created_by.username }}
+                    </small>
+                  </div>
+                </div>
+                {% if category.created_by == user or user.user_type == 'super_admin' %}
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-primary btn-sm" title="Edit">
+                    <i class="material-icons md-edit"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" title="Delete" 
+                          onclick="confirmDelete('{{ category.name }}', 'expenditure')">
+                    <i class="material-icons md-delete"></i>
+                  </button>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="material-icons md-category" style="font-size: 3rem; color: #ccc;"></i>
+              <p class="text-muted mt-2">No expenditure categories created yet.</p>
+              <a href="{% url 'add_expenditure_category' %}" class="btn btn-danger btn-sm">
+                <i class="material-icons md-add me-2"></i>Add Expenditure Category
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Usage Statistics -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title">Category Usage Statistics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-success">Most Used Income Categories</h6>
+              <div class="list-group list-group-flush">
+                <!-- This would require additional logic in views to get transaction counts -->
+                <div class="list-group-item d-flex justify-content-between">
+                  <span>Property Sales</span>
+                  <span class="badge bg-success">45 transactions</span>
+                </div>
+                <div class="list-group-item d-flex justify-content-between">
+                  <span>Rental Income</span>
+                  <span class="badge bg-success">32 transactions</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-danger">Most Used Expenditure Categories</h6>
+              <div class="list-group list-group-flush">
+                <div class="list-group-item d-flex justify-content-between">
+                  <span>Maintenance</span>
+                  <span class="badge bg-danger">28 transactions</span>
+                </div>
+                <div class="list-group-item d-flex justify-content-between">
+                  <span>Office Supplies</span>
+                  <span class="badge bg-danger">15 transactions</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+function confirmDelete(categoryName, categoryType) {
+    if (confirm(`Are you sure you want to delete the ${categoryType} category "${categoryName}"? This action cannot be undone.`)) {
+        // Add delete functionality here
+        alert('Delete functionality to be implemented');
+    }
+}
+</script>
+{% endblock content %}
