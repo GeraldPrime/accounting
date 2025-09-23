@@ -30,6 +30,8 @@ ALLOWED_HOSTS = [
     '.onrender.com', 
     'localhost',
     '127.0.0.1',
+    'accounting-c87l.onrender.com',
+    'accounting-tsec.onrender.com',
 ]
 
 
