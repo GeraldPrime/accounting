@@ -1,0 +1,27 @@
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/Accounting/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/Accounting/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/Accounting/settings.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /logout/ HTTP/1.1" 302 0
+"GET /login/ HTTP/1.1" 200 6719
+"GET /transactions/ HTTP/1.1" 302 0
+"GET /login/?next=/transactions/ HTTP/1.1" 200 6457
+"POST /login/?next=/transactions/ HTTP/1.1" 302 0
+"GET /transactions/ HTTP/1.1" 200 34715
+"GET /dashboard/ HTTP/1.1" 200 39785
+"GET /admin/ HTTP/1.1" 200 9820
+"GET /static/admin/css/base.css HTTP/1.1" 304 0
+"GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+"GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+"GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+"GET /static/admin/js/theme.js HTTP/1.1" 304 0
+"GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+"GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+"GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+"GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+"GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 8015
