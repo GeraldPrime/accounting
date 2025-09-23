@@ -1,0 +1,14 @@
+asgiref==3.8.1
+Django==5.1.4
+mysql-connector-python==9.1.0
+pillow==11.0.0
+sqlparse==0.5.3
+whitenoise==6.8.2
+gunicorn>=20.0.0
+psycopg2-binary==2.9.10
+python-dotenv==1.0.1
+dj-database-url==2.3.0
+weasyprint==65.1
+django-storages==1.14.6
+google-cloud-storage==3.1.0
+boto3==1.38.27
