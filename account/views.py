@@ -35,6 +35,8 @@ def login_view(request):
                     request.session.set_expiry(0)  # Session expires when browser closes
                 else:
                     request.session.set_expiry(1209600)  # 2 weeks
+                    
+                    
 
                 messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
 

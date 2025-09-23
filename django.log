@@ -25,3 +25,5 @@ Watching for file changes with StatReloader
 "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
 Not Found: /favicon.ico
 "GET /favicon.ico HTTP/1.1" 404 8015
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
