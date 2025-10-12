@@ -28,10 +28,15 @@ urlpatterns = [
     # Transactions
     path('transactions/', views.transactions, name='transactions'),
     path('add-transaction/', views.add_transaction, name='add_transaction'),
+    path('add-income/', views.add_income, name='add_income'),
+    path('add-expenditure/', views.add_expenditure, name='add_expenditure'),
     path('delete-transaction/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
 
     # Categories
     path('manage-categories/', views.manage_categories, name='manage_categories'),
     path('add-income-category/', views.add_income_category, name='add_income_category'),
     path('add-expenditure-category/', views.add_expenditure_category, name='add_expenditure_category'),
+    
+    # Reports
+    path('reports/', views.reports, name='reports'),
 ]

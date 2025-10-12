@@ -15,7 +15,7 @@
         <link
             rel="shortcut icon"
             type="image/x-icon"
-            href="/static/assets/imgs/theme/favicon.svg"
+            href="/static/assets/imgs/vaticanlogo.jpeg"
         />
         <link href="/static/assets/css/style.css" rel="stylesheet" />
         <title>
@@ -60,16 +60,15 @@
                         </a>
                         <div class="submenu">
                             <a href="{% url 'transactions' %}"
-                                >All Transactions</a
+                                >All Transactions History</a
                             >
-                            <a href="{% url 'add_transaction' %}"
-                                >Add Transaction</a
+                            {% if user.user_type == 'super_admin' %}
+                            <a href="{% url 'add_income' %}"
+                                >Add Income</a
                             >
-                            <a href="{% url 'transactions' %}?type=income"
-                                >Income Only</a
-                            >
-                            <a href="{% url 'transactions' %}?type=expenditure"
-                                >Expenditure Only</a
+                            {% endif %}
+                            <a href="{% url 'add_expenditure' %}"
+                                >Add Expenditure</a
                             >
                         </div>
                     </li>
@@ -151,7 +150,7 @@
                     {% endif %}
 
                     <li class="menu-item">
-                        <a class="menu-link" href="#">
+                        <a class="menu-link" href="{% url 'reports' %}">
                             <i class="icon material-icons md-assessment"></i>
                             <span class="text">Reports</span>
                         </a>

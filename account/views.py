@@ -84,6 +84,9 @@ def dashboard(request):
         main_income = main_branch.get_total_income()
         main_expenditure = main_branch.get_total_expenditure()
         main_balance = main_branch.get_balance()
+        
+        # Calculate available funds for allocation (main branch balance)
+        available_for_allocation = main_balance
 
         # All branches combined
         total_income = Transaction.objects.filter(
@@ -120,6 +123,7 @@ def dashboard(request):
             'main_income': main_income,
             'main_expenditure': main_expenditure,
             'main_balance': main_balance,
+            'available_for_allocation': available_for_allocation,
             'total_income': total_income,
             'total_expenditure': total_expenditure,
             'total_balance': total_balance,
@@ -410,6 +414,14 @@ def transactions(request):
 
 @login_required
 def add_transaction(request):
+    # Check if branch admin is trying to add income (not allowed)
+    if request.user.user_type == 'branch_admin':
+        if request.method == 'POST':
+            transaction_type = request.POST.get('transaction_type')
+            if transaction_type == 'income':
+                messages.error(request, 'Branch administrators can only add expenditure transactions. Income can only be added by the main administrator.')
+                return redirect('add_transaction')
+    
     if request.method == 'POST':
         form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
@@ -426,6 +438,17 @@ def add_transaction(request):
                     return redirect('dashboard')
                 transaction.branch = branch
 
+            # Additional balance validation at view level
+            if transaction.transaction_type == 'expenditure':
+                current_balance = transaction.branch.get_balance()
+                if current_balance < transaction.amount:
+                    messages.error(request, 
+                        f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
+                        f"but you're trying to spend ₦{transaction.amount:,.2f}. "
+                        f"Available balance: ₦{current_balance:,.2f}"
+                    )
+                    return render(request, 'add_transaction.html', {'form': form})
+
             transaction.save()
             messages.success(request, 'Transaction added successfully!')
             return redirect('transactions')
@@ -433,6 +456,69 @@ def add_transaction(request):
         form = TransactionForm(user=request.user)
 
     return render(request, 'add_transaction.html', {'form': form})
+
+
+@login_required
+def add_income(request):
+    if request.user.user_type != 'super_admin':
+        messages.error(request, 'Only super administrators can add income transactions.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, user=request.user)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.created_by = request.user
+            transaction.transaction_type = 'income'  # Force income type
+            transaction.branch = form.cleaned_data['branch']
+
+            transaction.save()
+            messages.success(request, 'Income transaction added successfully!')
+            return redirect('transactions')
+    else:
+        form = TransactionForm(user=request.user)
+        form.fields['transaction_type'].initial = 'income'  # Pre-select income
+
+    return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'income'})
+
+
+@login_required
+def add_expenditure(request):
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, user=request.user)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.created_by = request.user
+            transaction.transaction_type = 'expenditure'  # Force expenditure type
+
+            # Set branch based on user type
+            if request.user.user_type == 'super_admin':
+                transaction.branch = form.cleaned_data['branch']
+            else:
+                branch = request.user.managed_branch
+                if not branch:
+                    messages.error(request, 'No branch assigned to your account.')
+                    return redirect('dashboard')
+                transaction.branch = branch
+
+            # Additional balance validation at view level
+            current_balance = transaction.branch.get_balance()
+            if current_balance < transaction.amount:
+                messages.error(request, 
+                    f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
+                    f"but you're trying to spend ₦{transaction.amount:,.2f}. "
+                    f"Available balance: ₦{current_balance:,.2f}"
+                )
+                return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
+
+            transaction.save()
+            messages.success(request, 'Expenditure transaction added successfully!')
+            return redirect('transactions')
+    else:
+        form = TransactionForm(user=request.user)
+        form.fields['transaction_type'].initial = 'expenditure'  # Pre-select expenditure
+
+    return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
 
 
 @login_required
@@ -643,3 +729,156 @@ def reset_user_password(request, user_id):
         return redirect('manage_users')
 
     return render(request, 'reset_password.html', {'user': user})
+
+
+@login_required
+def reports(request):
+    from datetime import datetime, timedelta
+    from django.db.models import Count, Avg
+    
+    # Get date range filters
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    report_type = request.GET.get('report_type', 'overview')
+    
+    # Default to current month if no dates provided
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+    
+    # Convert to date objects for filtering
+    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    # Base queryset for transactions in date range
+    transactions_qs = Transaction.objects.filter(
+        date__range=[start_date_obj, end_date_obj],
+        branch__is_active=True
+    )
+    
+    # Filter by user type
+    if request.user.user_type == 'branch_admin':
+        branch = request.user.managed_branch
+        if branch:
+            transactions_qs = transactions_qs.filter(branch=branch)
+        else:
+            transactions_qs = Transaction.objects.none()
+    
+    # Calculate financial metrics
+    total_income = transactions_qs.filter(transaction_type='income').aggregate(
+        Sum('amount'))['amount__sum'] or Decimal('0')
+    total_expenditure = transactions_qs.filter(transaction_type='expenditure').aggregate(
+        Sum('amount'))['amount__sum'] or Decimal('0')
+    net_balance = total_income - total_expenditure
+    
+    # Transaction counts
+    income_count = transactions_qs.filter(transaction_type='income').count()
+    expenditure_count = transactions_qs.filter(transaction_type='expenditure').count()
+    total_transactions = income_count + expenditure_count
+    
+    # Calculate average transaction value
+    average_transaction_value = Decimal('0')
+    if total_transactions > 0:
+        total_amount = total_income + total_expenditure
+        average_transaction_value = total_amount / total_transactions
+    
+    # Daily transaction trends (last 30 days)
+    daily_trends = []
+    for i in range(30):
+        date = datetime.now().date() - timedelta(days=i)
+        day_income = transactions_qs.filter(
+            transaction_type='income', 
+            date=date
+        ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        day_expenditure = transactions_qs.filter(
+            transaction_type='expenditure', 
+            date=date
+        ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        daily_trends.append({
+            'date': date,
+            'income': day_income,
+            'expenditure': day_expenditure,
+            'net': day_income - day_expenditure
+        })
+    
+    # Top categories
+    income_categories = transactions_qs.filter(transaction_type='income').values(
+        'income_category__name'
+    ).annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total')[:5]
+    
+    expenditure_categories = transactions_qs.filter(transaction_type='expenditure').values(
+        'expenditure_category__name'
+    ).annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total')[:5]
+    
+    # Branch performance (super admin only)
+    branch_performance = []
+    if request.user.user_type == 'super_admin':
+        branches = Branch.objects.filter(is_active=True)
+        for branch in branches:
+            branch_transactions = transactions_qs.filter(branch=branch)
+            branch_income = branch_transactions.filter(transaction_type='income').aggregate(
+                Sum('amount'))['amount__sum'] or Decimal('0')
+            branch_expenditure = branch_transactions.filter(transaction_type='expenditure').aggregate(
+                Sum('amount'))['amount__sum'] or Decimal('0')
+            branch_performance.append({
+                'branch': branch,
+                'income': branch_income,
+                'expenditure': branch_expenditure,
+                'net': branch_income - branch_expenditure,
+                'transaction_count': branch_transactions.count()
+            })
+    
+    # Recent transactions
+    recent_transactions = transactions_qs.select_related(
+        'branch', 'created_by', 'income_category', 'expenditure_category'
+    ).order_by('-created_date')[:10]
+    
+    # Monthly comparison (current vs previous month)
+    current_month_start = datetime.now().replace(day=1).date()
+    previous_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+    previous_month_end = current_month_start - timedelta(days=1)
+    
+    current_month_income = transactions_qs.filter(
+        transaction_type='income',
+        date__gte=current_month_start
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+    
+    previous_month_income = Transaction.objects.filter(
+        transaction_type='income',
+        date__range=[previous_month_start, previous_month_end],
+        branch__is_active=True
+    ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+    
+    income_growth = 0
+    if previous_month_income > 0:
+        income_growth = ((current_month_income - previous_month_income) / previous_month_income) * 100
+    
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'report_type': report_type,
+        'total_income': total_income,
+        'total_expenditure': total_expenditure,
+        'net_balance': net_balance,
+        'income_count': income_count,
+        'expenditure_count': expenditure_count,
+        'total_transactions': total_transactions,
+        'average_transaction_value': average_transaction_value,
+        'daily_trends': daily_trends,
+        'income_categories': income_categories,
+        'expenditure_categories': expenditure_categories,
+        'branch_performance': branch_performance,
+        'recent_transactions': recent_transactions,
+        'current_month_income': current_month_income,
+        'previous_month_income': previous_month_income,
+        'income_growth': income_growth,
+    }
+    
+    return render(request, 'reports.html', context)

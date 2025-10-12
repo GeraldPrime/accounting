@@ -9,8 +9,14 @@
       <h2 class="content-title card-title">Transactions</h2>
       <p>View and manage all financial transactions</p>
     </div>
-    <div>
-      <a class="btn btn-primary" href="{% url 'add_transaction' %}">
+    <div class="d-flex gap-2">
+      <button class="btn btn-success no-print" onclick="printTransactions()" id="printBtn">
+        <i class="material-icons md-print"></i>Print
+      </button>
+      <button class="btn btn-danger no-print" onclick="downloadPDF()" id="pdfBtn">
+        <i class="material-icons md-download"></i>Download PDF
+      </button>
+      <a class="btn btn-primary no-print" href="{% url 'add_transaction' %}">
         <i class="material-icons md-add"></i>Add Transaction
       </a>
     </div>
@@ -36,7 +42,7 @@
           </select>
         </div>
         {% endif %}
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label">Transaction Type</label>
           <select name="type" class="form-control">
             <option value="">All Types</option>
@@ -44,7 +50,15 @@
             <option value="expenditure" {% if request.GET.type == 'expenditure' %}selected{% endif %}>Expenditure</option>
           </select>
         </div>
-        <div class="col-md-4 d-flex align-items-end">
+        <div class="col-md-2">
+          <label class="form-label">From Date</label>
+          <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">To Date</label>
+          <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
           <button type="submit" class="btn btn-primary me-2">Filter</button>
           <a href="{% url 'transactions' %}" class="btn btn-outline-secondary">Clear</a>
         </div>
@@ -53,7 +67,7 @@
   </div>
 
   <!-- Transactions Table -->
-  <div class="card">
+  <div class="card" id="report-content">
     <div class="card-header">
       <h5 class="card-title">Transaction History</h5>
     </div>
@@ -176,4 +190,82 @@
   </div>
 
 </section>
+
+
+<!-- Include html2pdf library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+function printTransactions() {
+  // Simple print function
+  window.print();
+}
+
+function downloadPDF() {
+  const element = document.getElementById('report-content');
+  
+  const opt = {
+    margin:       0.5,
+    filename:     'Transactions_Report_{{ "now"|date:"Y_m_d_His" }}.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
+// Test function
+function testFunctions() {
+  alert('Test function works! Print and PDF should work now.');
+}
+</script>
+
+<style>
+@media print {
+  .btn, .no-print, #filters-section {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+    border-bottom: 2px solid #000 !important;
+  }
+  
+  .table thead th {
+    background-color: #343a40 !important;
+    color: white !important;
+  }
+  
+  .badge {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  .badge.bg-success { background-color: #28a745 !important; color: white !important; }
+  .badge.bg-danger { background-color: #dc3545 !important; color: white !important; }
+  
+  .text-success {
+    color: #28a745 !important;
+  }
+  
+  .text-danger {
+    color: #dc3545 !important;
+  }
+  
+  body {
+    font-size: 12px;
+  }
+  
+  .table {
+    font-size: 11px;
+  }
+}
+</style>
 {% endblock content %}

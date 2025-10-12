@@ -130,6 +130,30 @@ class Transaction(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        
+        # Strict balance validation - no expenditures allowed on negative balance
+        if self.transaction_type == 'expenditure' and self.branch_id:
+            current_balance = self.branch.get_balance()
+            if current_balance < self.amount:
+                if self.fund_allocation_id:
+                    raise ValidationError(
+                        f"Cannot allocate funds. Main branch has insufficient balance of ₦{current_balance:,.2f}. "
+                        f"Trying to allocate ₦{self.amount:,.2f}. "
+                        f"Please add income to the main branch first to increase the balance."
+                    )
+                else:
+                    raise ValidationError(
+                        f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
+                        f"but you're trying to spend ₦{self.amount:,.2f}. "
+                        f"Available balance: ₦{current_balance:,.2f}"
+                    )
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.branch.name} - {self.transaction_type} - ₦{self.amount}"
 

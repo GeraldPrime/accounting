@@ -132,6 +132,9 @@ class TransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Store user for use in clean method
+        self.user = user
 
         if user:
             if user.user_type == 'super_admin':
@@ -144,23 +147,57 @@ class TransactionForm(forms.ModelForm):
                 income_categories = IncomeCategory.objects.filter(is_active=True)
                 expenditure_categories = ExpenditureCategory.objects.filter(is_active=True)
             else:
-                # Branch admin sees categories available to their branch
+                # Branch admin can only add expenditure transactions
                 branch = user.managed_branch
                 if branch:
-                    income_categories = IncomeCategory.objects.filter(
-                        Q(scope__in=['all', branch.branch_type]) | Q(branch=branch),
-                        is_active=True
-                    )
+                    # Branch admins can only add expenditure transactions
+                    # Remove income option for branch admins
+                    self.fields['transaction_type'].choices = [
+                        ('expenditure', 'Expenditure'),
+                    ]
+                    
                     expenditure_categories = ExpenditureCategory.objects.filter(
                         Q(scope__in=['all', branch.branch_type]) | Q(branch=branch),
                         is_active=True
                     )
+                    income_categories = IncomeCategory.objects.none()
                 else:
                     income_categories = IncomeCategory.objects.none()
                     expenditure_categories = ExpenditureCategory.objects.none()
 
             self.fields['income_category'].queryset = income_categories
             self.fields['expenditure_category'].queryset = expenditure_categories
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = getattr(self, 'user', None)
+        
+        if user and user.user_type == 'branch_admin':
+            transaction_type = cleaned_data.get('transaction_type')
+            if transaction_type == 'income':
+                raise forms.ValidationError("Branch administrators can only add expenditure transactions. Income can only be added by the main administrator.")
+        
+        # Add balance validation for expenditure transactions
+        transaction_type = cleaned_data.get('transaction_type')
+        amount = cleaned_data.get('amount')
+        
+        if transaction_type == 'expenditure' and amount:
+            # Get the branch for balance calculation
+            if user and user.user_type == 'super_admin':
+                branch = cleaned_data.get('branch')
+            else:
+                branch = user.managed_branch if user else None
+            
+            if branch:
+                current_balance = branch.get_balance()
+                if current_balance < amount:
+                    raise forms.ValidationError(
+                        f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
+                        f"but you're trying to spend ₦{amount:,.2f}. "
+                        f"Available balance: ₦{current_balance:,.2f}"
+                    )
+        
+        return cleaned_data
 
 class IncomeCategoryForm(forms.ModelForm):
     class Meta:

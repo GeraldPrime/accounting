@@ -24,9 +24,13 @@
                     <i class="material-icons md-add"></i>Create New Branch
                 </a>
             {% endif %}
-            {% if branch or user.user_type == 'super_admin' %}
+            {% if user.user_type == 'super_admin' %}
                 <a class="btn btn-success" href="{% url 'add_transaction' %}">
                     <i class="material-icons md-add"></i>Add Transaction
+                </a>
+            {% elif branch %}
+                <a class="btn btn-warning" href="{% url 'add_transaction' %}">
+                    <i class="material-icons md-add"></i>Add Expenditure
                 </a>
             {% endif %}
         </div>
@@ -73,6 +77,21 @@
 
     <!-- Summary Cards - Only show if user has proper access -->
     {% if not error_message and not info_message %}
+    
+    <!-- Warning for negative main branch balance -->
+    {% if user.user_type == 'super_admin' and available_for_allocation < 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                <i class="material-icons md-error me-2"></i>
+                <strong>Cannot Allocate Funds:</strong> Main branch has a negative balance of ₦{{ available_for_allocation|floatformat:2 }}. 
+                <strong>You must add income to the main branch first</strong> before you can allocate funds to other branches.
+                <br><small class="text-muted">Current balance: ₦{{ available_for_allocation|floatformat:2 }} - Add income to increase this balance.</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div class="row">
         {% if user.user_type == 'super_admin' %}
             <div class="col-lg-3 col-md-6">
@@ -185,6 +204,26 @@
                             <h6 class="mb-1 card-title">Main Branch Expenditure</h6>
                             <span class="h4 text-danger">₦{{ main_expenditure|floatformat:2 }}</span>
                             <span class="text-sm text-muted d-block">{{ main_branch.name }}</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <span class="icon icon-sm rounded-circle {% if available_for_allocation >= 0 %}bg-success-light{% else %}bg-danger-light{% endif %}">
+                            <i class="{% if available_for_allocation >= 0 %}text-success{% else %}text-danger{% endif %} material-icons md-account_balance_wallet"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1 card-title">Main Branch Balance</h6>
+                            <span class="h4 {% if available_for_allocation >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ available_for_allocation|floatformat:2 }}</span>
+                            <span class="text-sm text-muted d-block">
+                                {% if available_for_allocation >= 0 %}
+                                    Can allocate funds
+                                {% else %}
+                                    Cannot allocate - add income first
+                                {% endif %}
+                            </span>
                         </div>
                     </article>
                 </div>
@@ -381,9 +420,15 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'add_transaction' %}" class="btn btn-primary">
-                            <i class="material-icons md-add me-2"></i>Add Transaction
-                        </a>
+                        {% if user.user_type == 'super_admin' %}
+                            <a href="{% url 'add_transaction' %}" class="btn btn-primary">
+                                <i class="material-icons md-add me-2"></i>Add Transaction
+                            </a>
+                        {% else %}
+                            <a href="{% url 'add_transaction' %}" class="btn btn-warning">
+                                <i class="material-icons md-add me-2"></i>Add Expenditure
+                            </a>
+                        {% endif %}
                         <a href="{% url 'transactions' %}" class="btn btn-outline-primary">
                             <i class="material-icons md-list me-2"></i>View All Transactions
                         </a>
