@@ -18,6 +18,14 @@
             href="/static/assets/imgs/theme/favicon.svg"
         />
         <link href="/static/assets/css/style.css?v=1.0.0" rel="stylesheet" />
+        <style>
+            /* Hide any inline form field errors */
+            .form-control.is-invalid,
+            .form-control:invalid {
+                border-color: #ced4da !important;
+                box-shadow: none !important;
+            }
+        </style>
         <title>Vatican Garden Projects - Sign In</title>
     </head>
     <body>
@@ -32,19 +40,19 @@
                         {% csrf_token %}
 
                         <div class="mb-3">
-                            {{ form.username }} {% if form.username.errors %}
-                            <div class="text-danger">
-                                {{ form.username.errors }}
-                            </div>
-                            {% endif %}
+                            <input type="text" 
+                                   name="username" 
+                                   class="form-control" 
+                                   placeholder="Username or email" 
+                                   autofocus 
+                                   value="{{ form.username.value|default:'' }}">
                         </div>
 
                         <div class="mb-3">
-                            {{ form.password }} {% if form.password.errors %}
-                            <div class="text-danger">
-                                {{ form.password.errors }}
-                            </div>
-                            {% endif %}
+                            <input type="password" 
+                                   name="password" 
+                                   class="form-control" 
+                                   placeholder="Password">
                         </div>
 
                         <div class="mb-3">
@@ -52,10 +60,11 @@
                                 >Forgot password?</a
                             >
                             <label class="form-check">
-                                {{ form.remember_me }}
-                                <span class="form-check-label"
-                                    >Remember me</span
-                                >
+                                <input type="checkbox" 
+                                       name="remember_me" 
+                                       class="form-check-input" 
+                                       {% if form.remember_me.value %}checked{% endif %}>
+                                <span class="form-check-label">Remember me</span>
                             </label>
                         </div>
 

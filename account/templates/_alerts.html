@@ -2,20 +2,22 @@
 <style>
     .alert-container {
       position: fixed;
-      width: 100%;  
-      top: 50px;
+      top: 20px;
       right: 20px;
       z-index: 999999;
-      max-width: 500px;
+      max-width: 400px;
+      width: auto;
     }
     .alert-container > .alert { 
       width: 100% !important;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 </style>
   
 
 
-<div class="alert-container mb-30">
+<div class="alert-container">
 
     {% if messages %}
     {% for message in messages %}

@@ -6,18 +6,38 @@ from .validators import validate_minimum_length
 from django.db.models import Sum, Q
 
 
+class NoErrorTextInput(forms.TextInput):
+    """Custom widget that doesn't display field errors"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attrs.update({'class': 'form-control'})
+
+    def render(self, name, value, attrs=None, renderer=None):
+        # Override to prevent error display
+        return super().render(name, value, attrs, renderer)
+
+
+class NoErrorPasswordInput(forms.PasswordInput):
+    """Custom widget that doesn't display field errors"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attrs.update({'class': 'form-control'})
+
+    def render(self, name, value, attrs=None, renderer=None):
+        # Override to prevent error display
+        return super().render(name, value, attrs, renderer)
+
+
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
         max_length=254,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
+        widget=NoErrorTextInput(attrs={
             'placeholder': 'Username or email',
             'autofocus': True
         })
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
+        widget=NoErrorPasswordInput(attrs={
             'placeholder': 'Password'
         })
     )

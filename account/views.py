@@ -48,7 +48,10 @@ def login_view(request):
             else:
                 messages.error(request, 'Invalid username or password.')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Convert form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.title()}: {error}")
     else:
         form = LoginForm()
 
@@ -740,6 +743,7 @@ def reports(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     report_type = request.GET.get('report_type', 'overview')
+    branch_filter = request.GET.get('branch')
     
     # Default to current month if no dates provided
     if not start_date:
@@ -757,13 +761,20 @@ def reports(request):
         branch__is_active=True
     )
     
-    # Filter by user type
-    if request.user.user_type == 'branch_admin':
+    # Filter by user type and branch
+    if request.user.user_type == 'super_admin':
+        # Super admin can see all branches or filter by specific branch
+        branches = Branch.objects.filter(is_active=True).order_by('name')
+        if branch_filter:
+            transactions_qs = transactions_qs.filter(branch_id=branch_filter)
+    else:
+        # Branch admin can only see their own branch
         branch = request.user.managed_branch
         if branch:
             transactions_qs = transactions_qs.filter(branch=branch)
         else:
             transactions_qs = Transaction.objects.none()
+        branches = None
     
     # Calculate financial metrics
     total_income = transactions_qs.filter(transaction_type='income').aggregate(
@@ -864,6 +875,8 @@ def reports(request):
         'start_date': start_date,
         'end_date': end_date,
         'report_type': report_type,
+        'branches': branches,
+        'selected_branch': branch_filter,
         'total_income': total_income,
         'total_expenditure': total_expenditure,
         'net_balance': net_balance,

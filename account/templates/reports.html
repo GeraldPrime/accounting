@@ -27,6 +27,19 @@
     </div>
     <div class="card-body">
       <form method="get" class="row g-3">
+        {% if user.user_type == 'super_admin' %}
+        <div class="col-md-3">
+          <label class="form-label">Branch</label>
+          <select name="branch" class="form-control">
+            <option value="">All Branches</option>
+            {% for branch in branches %}
+              <option value="{{ branch.id }}" {% if selected_branch == branch.id|stringformat:"s" %}selected{% endif %}>
+                {{ branch.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
         <div class="col-md-3">
           <label class="form-label">Start Date</label>
           <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
