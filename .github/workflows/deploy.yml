@@ -1,0 +1,46 @@
+name: Deploy Accounting to VPS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          echo "Starting deployment..."
+          
+          cd /opt/accounting/accounting/accounting || { echo "Failed to change directory"; exit 1; }
+          
+          echo "Pulling latest code..."
+          git fetch origin
+          git reset --hard origin/main
+          
+          echo "Installing dependencies..."
+          source /opt/accounting/venv/bin/activate
+          pip install -r requirements.txt
+          
+          echo "Running migrations..."
+          python manage.py migrate --noinput
+          
+          echo "Collecting static files..."
+          python manage.py collectstatic --noinput
+          
+          echo "Restarting accounting service..."
+          sudo systemctl restart accounting
+          
+          echo "Restarting nginx..."
+          sudo systemctl restart nginx
+          
+          echo "✅ Deployment completed!"
