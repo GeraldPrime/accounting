@@ -27,13 +27,22 @@ SECRET_KEY = 'django-insecure-_xf9up9iwfv0bcdjl-ryzljj%dwkc$v314s-(4w-7wl4zf8&kc
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '.onrender.com', 
+    '72.61.167.164',
+    'vaticanbooks.cloud',
+    'www.vaticanbooks.cloud',
+    '.onrender.com',
     'localhost',
     '127.0.0.1',
-    'accounting-c87l.onrender.com',
-    'accounting-tsec.onrender.com',
 ]
 
+# CSRF Settings for HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://vaticanbooks.cloud',
+    'https://www.vaticanbooks.cloud',
+    'http://72.61.167.164',
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 AUTH_USER_MODEL = 'account.User'
 

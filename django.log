@@ -753,3 +753,4 @@ Watching for file changes with StatReloader
 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
 "GET /reports/ HTTP/1.1" 200 43065
 "GET /reports/?branch=3&start_date=2025-10-01&end_date=2025-10-17&report_type=overview HTTP/1.1" 200 40446
+"GET /reports/?branch=3&start_date=2025-10-01&end_date=2025-10-17&report_type=overview HTTP/1.1" 200 40446
