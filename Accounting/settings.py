@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
-# CSRF Settings for HTTPS
+# CSRF Settings for HTTPSss
 CSRF_TRUSTED_ORIGINS = [
     'https://vaticanbooks.cloud',
     'https://www.vaticanbooks.cloud',
