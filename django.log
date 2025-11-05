@@ -754,3 +754,252 @@ Watching for file changes with StatReloader
 "GET /reports/ HTTP/1.1" 200 43065
 "GET /reports/?branch=3&start_date=2025-10-01&end_date=2025-10-17&report_type=overview HTTP/1.1" 200 40446
 "GET /reports/?branch=3&start_date=2025-10-01&end_date=2025-10-17&report_type=overview HTTP/1.1" 200 40446
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 302 0
+"GET /login/?next=/ HTTP/1.1" 200 7050
+"GET /static/assets/css/style.css?v=1.0.0 HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/bootstrap.bundle.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/select2.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/bootstrap.bundle.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/jquery-3.6.0.min.js HTTP/1.1" 200 89503
+"GET /static/assets/js/vendors/select2.min.js HTTP/1.1" 200 68059
+"GET /static/assets/css/vendors/normalize.css HTTP/1.1" 304 0
+"GET /static/assets/css/vendors/material-icon-round.css HTTP/1.1" 304 0
+"GET /static/assets/css/vendors/bootstrap.css HTTP/1.1" 200 257573
+"GET /static/assets/css/vendors/select2.min.css HTTP/1.1" 304 0
+"GET /static/assets/css/vendors/perfect-scrollbar.css HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/perfect-scrollbar.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/jquery.fullscreen.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/chart.js HTTP/1.1" 200 180403
+"GET /static/assets/js/custom-chart.js HTTP/1.1" 304 0
+"GET /static/assets/js/main.js?v=1.0.0 HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/jquery.fullscreen.min.js HTTP/1.1" 200 7012
+"GET /static/assets/js/main.js?v=1.0.0 HTTP/1.1" 200 1183
+"GET /static/assets/js/custom-chart.js HTTP/1.1" 200 3482
+"GET /static/assets/js/vendors/perfect-scrollbar.js HTTP/1.1" 200 38417
+"GET /static/assets/js/vendors/jquery-3.6.0.min.js HTTP/1.1" 200 89503
+"GET /static/assets/js/vendors/chart.js HTTP/1.1" 200 180403
+"GET /static/assets/imgs/theme/favicon.svg HTTP/1.1" 304 0
+"POST /login/?next=/ HTTP/1.1" 302 0
+"GET / HTTP/1.1" 200 37301
+"GET /static/assets/css/style.css HTTP/1.1" 304 0
+"GET /static/assets/imgs/vaticanlogo.jpeg HTTP/1.1" 200 224289
+"GET /static/assets/fonts/material-icon/MaterialIcons-Round.woff2 HTTP/1.1" 200 88376
+"GET /add-income/ HTTP/1.1" 200 21234
+"GET /dashboard/ HTTP/1.1" 200 37048
+"GET /add-income/ HTTP/1.1" 200 21234
+"GET /allocate-funds/ HTTP/1.1" 200 16669
+"GET /dashboard/ HTTP/1.1" 200 37048
+"GET /add-income/ HTTP/1.1" 200 21234
+"GET /dashboard/ HTTP/1.1" 200 37048
+"GET /add-income/ HTTP/1.1" 200 21234
+"POST /add-income/ HTTP/1.1" 200 21273
+"POST /add-income/ HTTP/1.1" 200 21273
+"POST /add-income/ HTTP/1.1" 200 21273
+"POST /add-income/ HTTP/1.1" 200 21273
+"POST /add-income/ HTTP/1.1" 200 21273
+"POST /add-income/ HTTP/1.1" 200 21273
+"POST /add-income/ HTTP/1.1" 200 21276
+"POST /add-income/ HTTP/1.1" 200 21276
+"POST /add-income/ HTTP/1.1" 200 21276
+"GET /add-expenditure/ HTTP/1.1" 200 21259
+"GET /transactions/ HTTP/1.1" 200 41259
+"GET /add-transaction/ HTTP/1.1" 200 21401
+"POST /add-transaction/ HTTP/1.1" 302 0
+"GET /transactions/ HTTP/1.1" 200 42769
+"GET /add-income/ HTTP/1.1" 200 21234
+"POST /add-income/ HTTP/1.1" 200 21271
+"POST /add-income/ HTTP/1.1" 200 21271
+"POST /add-income/ HTTP/1.1" 200 21271
+"GET /add-expenditure/ HTTP/1.1" 200 21259
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /add-expenditure/ HTTP/1.1" 200 21449
+"GET /add-income/ HTTP/1.1" 200 21424
+"GET /add-income/ HTTP/1.1" 200 21425
+"POST /add-income/ HTTP/1.1" 302 0
+"GET /transactions/ HTTP/1.1" 200 44023
+"GET /dashboard/ HTTP/1.1" 200 37022
+"GET /add-expenditure/ HTTP/1.1" 200 21450
+"POST /add-expenditure/ HTTP/1.1" 200 21491
+"POST /add-expenditure/ HTTP/1.1" 200 21491
+"POST /add-expenditure/ HTTP/1.1" 200 21491
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /add-expenditure/ HTTP/1.1" 200 22108
+"GET /dashboard/ HTTP/1.1" 200 37022
+"GET /add-expenditure/ HTTP/1.1" 200 21476
+"POST /add-expenditure/ HTTP/1.1" 302 0
+"GET /transactions/ HTTP/1.1" 200 45284
+"GET /dashboard/ HTTP/1.1" 200 37027
+"GET /manage-branches/ HTTP/1.1" 200 25159
+"GET /manage-branches/ HTTP/1.1" 200 25159
+"GET /transactions/ HTTP/1.1" 200 45014
+"GET /manage-categories/ HTTP/1.1" 200 28416
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 37027
+"GET /allocate-funds/ HTTP/1.1" 200 16669
+"POST /allocate-funds/ HTTP/1.1" 302 0
+"GET /fund-allocations/ HTTP/1.1" 200 20726
+"GET /dashboard/ HTTP/1.1" 200 37052
+"GET /reports/ HTTP/1.1" 200 35814
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /reports/ HTTP/1.1" 200 35814
+"GET /manage-categories/ HTTP/1.1" 200 38416
+"GET /edit-income-category/6/ HTTP/1.1" 200 130
+"POST /edit-income-category/6/ HTTP/1.1" 200 69
+"GET /manage-categories/ HTTP/1.1" 200 38428
+"GET /edit-income-category/6/ HTTP/1.1" 200 140
+"POST /edit-income-category/6/ HTTP/1.1" 200 69
+"GET /manage-categories/ HTTP/1.1" 200 38432
+"GET /edit-income-category/7/ HTTP/1.1" 200 133
+"POST /edit-income-category/7/ HTTP/1.1" 200 69
+"GET /manage-categories/ HTTP/1.1" 200 38533
+"GET /edit-income-category/6/ HTTP/1.1" 200 141
+"POST /edit-income-category/6/ HTTP/1.1" 200 69
+"GET /manage-categories/ HTTP/1.1" 200 38533
+"POST /delete-income-category/7/ HTTP/1.1" 302 0
+"GET /manage-categories/ HTTP/1.1" 200 38844
+"POST /delete-income-category/9/ HTTP/1.1" 302 0
+"GET /manage-categories/ HTTP/1.1" 200 38849
+"GET /manage-categories/ HTTP/1.1" 200 38533
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-categories/ HTTP/1.1" 200 54391
+"GET /reports/ HTTP/1.1" 200 35814
+"GET /add-income-category/ HTTP/1.1" 200 24811
+"GET /add-income-category/ HTTP/1.1" 200 26122
+"GET /add-expenditure-category/ HTTP/1.1" 200 26145
+"GET /fund-allocations/ HTTP/1.1" 200 20435
+"GET /manage-users/ HTTP/1.1" 200 28453
+"GET /dashboard/ HTTP/1.1" 200 37058
+"GET /manage-users/ HTTP/1.1" 200 28453
+"GET /dashboard/ HTTP/1.1" 200 37058
+"GET /manage-branches/ HTTP/1.1" 200 25158
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-users/ HTTP/1.1" 200 28453
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-users/ HTTP/1.1" 200 31907
+"GET /manage-users/ HTTP/1.1" 200 38208
+"GET /manage-users/ HTTP/1.1" 200 32674
+"GET /assign-branch-admin/ HTTP/1.1" 200 17272
+"GET /manage-users/ HTTP/1.1" 200 32988
+"GET /manage-users/ HTTP/1.1" 200 32988
+"GET /toggle-user-status/4/ HTTP/1.1" 302 0
+"GET /manage-users/ HTTP/1.1" 200 33268
+"GET /toggle-user-status/4/ HTTP/1.1" 302 0
+"GET /manage-users/ HTTP/1.1" 200 33653
+"GET /manage-users/ HTTP/1.1" 200 33328
+"GET /fund-allocations/ HTTP/1.1" 200 20435
+"GET /manage-branches/ HTTP/1.1" 200 25158
+"GET /create-branch-admin/ HTTP/1.1" 200 20770
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-branches/ HTTP/1.1" 200 31789
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /transactions/?branch=3 HTTP/1.1" 200 34991
+"GET /manage-branches/ HTTP/1.1" 200 32307
+"GET /manage-branches/ HTTP/1.1" 200 32307
+"GET /manage-branches/ HTTP/1.1" 200 31887
+"GET /assign-branch-admin/ HTTP/1.1" 200 17272
+"GET /assign-branch-admin/ HTTP/1.1" 200 17272
+/Users/admin/Desktop/Accounting/account/urls.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /assign-branch-admin/ HTTP/1.1" 200 20024
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-branches/ HTTP/1.1" 200 31891
+"GET /assign-branch-admin/3/ HTTP/1.1" 200 20645
+"GET /allocate-funds/ HTTP/1.1" 200 16669
+"GET /allocate-funds/ HTTP/1.1" 200 16669
+"GET /fund-allocations/ HTTP/1.1" 200 20435
+/Users/admin/Desktop/Accounting/account/urls.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /allocate-funds/ HTTP/1.1" 200 16669
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-branches/ HTTP/1.1" 200 31893
+"GET /allocate-funds/3/ HTTP/1.1" 200 25741
+"POST /allocate-funds/3/ HTTP/1.1" 302 0
+"GET /manage-branches/ HTTP/1.1" 200 32183
+"GET /transactions/?branch=3 HTTP/1.1" 200 36332
+"GET /transactions/?branch=&type=&start_date=&end_date= HTTP/1.1" 200 50342
+"GET /transactions/ HTTP/1.1" 200 50342
+"GET /manage-users/ HTTP/1.1" 200 33440
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 18826
+"GET /manage-users/ HTTP/1.1" 200 33440
+"GET /reset-password/4/ HTTP/1.1" 200 12894
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 18826
+"POST /assign-branch-admin/user/4/ HTTP/1.1" 302 0
+"GET /manage-users/ HTTP/1.1" 200 33737
+"GET /manage-users/ HTTP/1.1" 200 33440
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 18826
+"GET /manage-users/ HTTP/1.1" 200 33440
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 18826
+"GET /manage-users/ HTTP/1.1" 200 33440
+"GET /manage-users/ HTTP/1.1" 200 33440
+"GET /assign-branch-admin/user/3/ HTTP/1.1" 200 18824
+"POST /assign-branch-admin/user/3/ HTTP/1.1" 302 0
+"GET /manage-users/ HTTP/1.1" 200 33899
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-users/ HTTP/1.1" 200 33597
+"GET /manage-users/ HTTP/1.1" 200 33597
+"GET /manage-users/ HTTP/1.1" 200 33597
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-users/ HTTP/1.1" 200 33597
+"GET /manage-users/ HTTP/1.1" 200 33597
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 18826
+"GET /manage-users/ HTTP/1.1" 200 33597
+"GET /assign-branch-admin/user/3/ HTTP/1.1" 200 18824
+"GET /manage-users/ HTTP/1.1" 200 33597
+"GET /manage-branches/ HTTP/1.1" 200 32063
+"GET /assign-branch-admin/3/ HTTP/1.1" 200 20645
+"GET /manage-branches/ HTTP/1.1" 200 32063
+"GET /assign-branch-admin/3/ HTTP/1.1" 200 20645
+"GET /manage-branches/ HTTP/1.1" 200 32063
+"GET /manage-branches/ HTTP/1.1" 200 32063
+"GET /manage-branches/ HTTP/1.1" 200 32063
+"GET /manage-branches/ HTTP/1.1" 200 32063
+"GET /assign-branch-admin/ HTTP/1.1" 200 20076
+"GET /reports/ HTTP/1.1" 200 37487

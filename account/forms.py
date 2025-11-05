@@ -151,10 +151,28 @@ class TransactionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        transaction_type = kwargs.pop('transaction_type', None)
+        
+        # If transaction_type is predetermined and form is being bound (POST data exists),
+        # ensure transaction_type is in the data before form initialization
+        if transaction_type and args and len(args) > 0:
+            from django.http import QueryDict
+            data = args[0]
+            if isinstance(data, QueryDict):
+                mutable_data = data.copy()
+                mutable_data['transaction_type'] = transaction_type
+                args = (mutable_data,) + args[1:]
+        
         super().__init__(*args, **kwargs)
         
         # Store user for use in clean method
         self.user = user
+
+        # If transaction_type is predetermined, hide the field and set it
+        if transaction_type:
+            self._predetermined_transaction_type = transaction_type
+            self.fields['transaction_type'].widget = forms.HiddenInput()
+            self.fields['transaction_type'].initial = transaction_type
 
         if user:
             if user.user_type == 'super_admin':
@@ -191,6 +209,10 @@ class TransactionForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         user = getattr(self, 'user', None)
+        
+        # If transaction_type was predetermined, ensure it's in cleaned_data
+        if hasattr(self, '_predetermined_transaction_type'):
+            cleaned_data['transaction_type'] = self._predetermined_transaction_type
         
         if user and user.user_type == 'branch_admin':
             transaction_type = cleaned_data.get('transaction_type')

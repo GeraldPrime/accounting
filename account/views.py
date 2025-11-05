@@ -224,8 +224,32 @@ def manage_users(request):
         messages.error(request, 'Only super admin can manage users.')
         return redirect('dashboard')
 
-    users = User.objects.filter(user_type='branch_admin').order_by('-date_joined')
-    return render(request, 'manage_users.html', {'users': users})
+    from django.db.models import Count
+
+    users = User.objects.filter(user_type='branch_admin') \
+        .prefetch_related('managed_branches') \
+        .annotate(branch_count=Count('managed_branches', distinct=True)) \
+        .order_by('-date_joined')
+
+    total_admins = users.count()
+    active_admins = users.filter(is_active=True).count()
+    inactive_admins = total_admins - active_admins
+    unassigned_admins = users.filter(managed_branches__isnull=True).distinct().count()
+    total_assigned_branches = Branch.objects.filter(admins__user_type='branch_admin').distinct().count()
+
+    branches = Branch.objects.filter(is_active=True).order_by('name')
+
+    context = {
+        'users': users,
+        'total_admins': total_admins,
+        'active_admins': active_admins,
+        'inactive_admins': inactive_admins,
+        'unassigned_admins': unassigned_admins,
+        'total_assigned_branches': total_assigned_branches,
+        'branches': branches,
+    }
+
+    return render(request, 'manage_users.html', context)
 
 
 @login_required
@@ -234,18 +258,78 @@ def manage_branches(request):
         messages.error(request, 'Only super admin can manage branches.')
         return redirect('dashboard')
 
-    branches = Branch.objects.all().select_related('created_by').prefetch_related('admins').order_by('-created_date')
-    return render(request, 'manage_branches.html', {'branches': branches})
+    from django.db.models import Count, Sum
+    
+    branches = Branch.objects.all() \
+        .select_related('created_by') \
+        .prefetch_related('admins') \
+        .annotate(admin_count=Count('admins', distinct=True)) \
+        .order_by('-created_date')
+    
+    # Calculate statistics
+    total_branches = branches.count()
+    active_branches = branches.filter(is_active=True).count()
+    inactive_branches = total_branches - active_branches
+    main_branches = branches.filter(branch_type='main').count()
+    sub_branches = branches.filter(branch_type='sub').count()
+    
+    # Financial statistics
+    total_allocated = Branch.objects.filter(is_active=True).aggregate(
+        total=Sum('allocated_funds')
+    )['total'] or Decimal('0')
+    
+    # Total balance across all branches
+    total_balance = Decimal('0')
+    for branch in branches.filter(is_active=True):
+        total_balance += branch.get_balance()
+    
+    context = {
+        'branches': branches,
+        'total_branches': total_branches,
+        'active_branches': active_branches,
+        'inactive_branches': inactive_branches,
+        'main_branches': main_branches,
+        'sub_branches': sub_branches,
+        'total_allocated': total_allocated,
+        'total_balance': total_balance,
+    }
+    
+    return render(request, 'manage_branches.html', context)
 
 
 @login_required
-def assign_branch_admin(request):
+def assign_branch_admin(request, branch_id=None, user_id=None):
     if request.user.user_type != 'super_admin':
         messages.error(request, 'Only super admin can assign branch admins.')
         return redirect('dashboard')
 
+    # Get pre-selected branch or user if provided
+    pre_selected_branch = None
+    pre_selected_user = None
+    
+    if branch_id:
+        try:
+            pre_selected_branch = Branch.objects.get(id=branch_id, is_active=True)
+        except Branch.DoesNotExist:
+            messages.error(request, 'Branch not found.')
+            return redirect('manage_branches')
+    
+    if user_id:
+        try:
+            pre_selected_user = User.objects.get(id=user_id, user_type='branch_admin')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+            return redirect('manage_users')
+
     if request.method == 'POST':
-        form = BranchAdminAssignmentForm(request.POST)
+        # Handle the case where branch is pre-selected
+        post_data = request.POST.copy()
+        
+        # If branch_id is provided but not in POST, add it
+        if branch_id and not post_data.get('branch'):
+            post_data['branch'] = branch_id
+        
+        form = BranchAdminAssignmentForm(post_data)
 
         if form.is_valid():
             branch = form.cleaned_data['branch']
@@ -255,34 +339,87 @@ def assign_branch_admin(request):
             branch.admins.clear()
 
             # Add new assignments
-            for admin in admins:
-                branch.admins.add(admin)
-
-            admin_names = ', '.join([admin.get_full_name() for admin in admins])
-            messages.success(request, f'Admins ({admin_names}) assigned to "{branch.name}" successfully!')
-            return redirect('manage_branches')
+            if admins:
+                for admin in admins:
+                    branch.admins.add(admin)
+                admin_names = ', '.join([admin.get_full_name() for admin in admins])
+                messages.success(request, f'Admins ({admin_names}) assigned to "{branch.name}" successfully!')
+            else:
+                messages.success(request, f'All admin assignments removed from "{branch.name}".')
+            
+            # Redirect based on where user came from
+            if branch_id:
+                return redirect('manage_branches')
+            elif user_id:
+                return redirect('manage_users')
+            else:
+                return redirect('manage_branches')
+        else:
+            # Display form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
-        form = BranchAdminAssignmentForm()
+        # Pre-populate form if branch or user is specified
+        initial_data = {}
+        if pre_selected_branch:
+            initial_data['branch'] = pre_selected_branch
+            # Pre-select existing admins for this branch
+            initial_data['admins'] = pre_selected_branch.admins.all()
+        
+        if pre_selected_user:
+            # Pre-select branches this user is assigned to
+            initial_data['admins'] = [pre_selected_user]
+        
+        form = BranchAdminAssignmentForm(initial=initial_data)
 
-    return render(request, 'assign_branch_admin.html', {'form': form})
+    # Get all branch admins for template display
+    branch_admins = User.objects.filter(user_type='branch_admin').order_by('first_name', 'last_name')
+    
+    # Get list of currently assigned admin IDs for pre-checking
+    assigned_admin_ids = []
+    if pre_selected_branch:
+        assigned_admin_ids = list(pre_selected_branch.admins.values_list('id', flat=True))
+    elif pre_selected_user:
+        assigned_admin_ids = [pre_selected_user.id]
+    
+    context = {
+        'form': form,
+        'pre_selected_branch': pre_selected_branch,
+        'pre_selected_user': pre_selected_user,
+        'branch_admins': branch_admins,
+        'assigned_admin_ids': assigned_admin_ids,
+    }
+    
+    return render(request, 'assign_branch_admin.html', context)
 
 
 @login_required
-def allocate_funds(request):
+def allocate_funds(request, branch_id=None):
     if request.user.user_type != 'super_admin':
         messages.error(request, 'Only super admin can allocate funds.')
         return redirect('dashboard')
+
+    # Get main branch
+    main_branch = Branch.objects.filter(branch_type='main').first()
+    if not main_branch:
+        messages.error(request, 'Main branch not found. Please create a main branch first.')
+        return redirect('manage_branches')
+    
+    # Get pre-selected branch if provided
+    pre_selected_branch = None
+    if branch_id:
+        try:
+            pre_selected_branch = Branch.objects.get(id=branch_id, branch_type='sub', is_active=True)
+        except Branch.DoesNotExist:
+            messages.error(request, 'Branch not found or is not a sub branch.')
+            return redirect('manage_branches')
 
     if request.method == 'POST':
         form = FundAllocationForm(request.POST, user=request.user)
 
         if form.is_valid():
             fund_allocation = form.save(commit=False)
-            main_branch = Branch.objects.filter(branch_type='main').first()
-            if not main_branch:
-                messages.error(request, 'Main branch not found. Please create a main branch first.')
-                return render(request, 'allocate_funds.html', {'form': form})
-
             fund_allocation.from_branch = main_branch
             fund_allocation.allocated_by = request.user
 
@@ -337,11 +474,31 @@ def allocate_funds(request):
             )
 
             messages.success(request, f'₦{fund_allocation.amount:,.2f} allocated to "{to_branch.name}" successfully!')
-            return redirect('fund_allocations')
+            
+            # Redirect based on where user came from
+            if branch_id:
+                return redirect('manage_branches')
+            else:
+                return redirect('fund_allocations')
     else:
-        form = FundAllocationForm(user=request.user)
+        # Pre-populate form if branch is specified
+        initial_data = {}
+        if pre_selected_branch:
+            initial_data['to_branch'] = pre_selected_branch
+        
+        form = FundAllocationForm(user=request.user, initial=initial_data)
 
-    return render(request, 'allocate_funds.html', {'form': form})
+    # Get available balance from main branch
+    main_balance = main_branch.get_balance()
+    
+    context = {
+        'form': form,
+        'main_branch': main_branch,
+        'main_balance': main_balance,
+        'pre_selected_branch': pre_selected_branch,
+    }
+    
+    return render(request, 'allocate_funds.html', context)
 
 
 @login_required
@@ -468,7 +625,7 @@ def add_income(request):
         return redirect('dashboard')
     
     if request.method == 'POST':
-        form = TransactionForm(request.POST, user=request.user)
+        form = TransactionForm(request.POST, user=request.user, transaction_type='income')
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.created_by = request.user
@@ -479,8 +636,7 @@ def add_income(request):
             messages.success(request, 'Income transaction added successfully!')
             return redirect('transactions')
     else:
-        form = TransactionForm(user=request.user)
-        form.fields['transaction_type'].initial = 'income'  # Pre-select income
+        form = TransactionForm(user=request.user, transaction_type='income')
 
     return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'income'})
 
@@ -488,7 +644,7 @@ def add_income(request):
 @login_required
 def add_expenditure(request):
     if request.method == 'POST':
-        form = TransactionForm(request.POST, user=request.user)
+        form = TransactionForm(request.POST, user=request.user, transaction_type='expenditure')
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.created_by = request.user
@@ -514,12 +670,18 @@ def add_expenditure(request):
                 )
                 return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
 
-            transaction.save()
-            messages.success(request, 'Expenditure transaction added successfully!')
-            return redirect('transactions')
+            try:
+                transaction.save()
+                messages.success(request, 'Expenditure transaction added successfully!')
+                return redirect('transactions')
+            except Exception as e:
+                messages.error(request, f'Error saving transaction: {str(e)}')
+                return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
+        else:
+            # Form is invalid - display errors
+            messages.error(request, 'Please correct the errors below.')
     else:
-        form = TransactionForm(user=request.user)
-        form.fields['transaction_type'].initial = 'expenditure'  # Pre-select expenditure
+        form = TransactionForm(user=request.user, transaction_type='expenditure')
 
     return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
 
@@ -530,12 +692,35 @@ def manage_categories(request):
         messages.error(request, 'Only super admin can manage categories.')
         return redirect('dashboard')
 
-    income_categories = IncomeCategory.objects.select_related('branch', 'created_by').filter(is_active=True)
-    expenditure_categories = ExpenditureCategory.objects.select_related('branch', 'created_by').filter(is_active=True)
+    from django.db.models import Count
+    
+    # Annotate categories with transaction counts
+    income_categories = IncomeCategory.objects.select_related('branch', 'created_by')\
+        .filter(is_active=True)\
+        .annotate(transaction_count=Count('transaction'))\
+        .order_by('-transaction_count', 'name')
+    
+    expenditure_categories = ExpenditureCategory.objects.select_related('branch', 'created_by')\
+        .filter(is_active=True)\
+        .annotate(transaction_count=Count('transaction'))\
+        .order_by('-transaction_count', 'name')
+    
+    branches = Branch.objects.filter(is_active=True).order_by('name')
+    
+    # Calculate statistics
+    total_income_categories = income_categories.count()
+    total_expenditure_categories = expenditure_categories.count()
+    total_income_transactions = sum(cat.transaction_count for cat in income_categories)
+    total_expenditure_transactions = sum(cat.transaction_count for cat in expenditure_categories)
 
     return render(request, 'manage_categories.html', {
         'income_categories': income_categories,
         'expenditure_categories': expenditure_categories,
+        'branches': branches,
+        'total_income_categories': total_income_categories,
+        'total_expenditure_categories': total_expenditure_categories,
+        'total_income_transactions': total_income_transactions,
+        'total_expenditure_transactions': total_expenditure_transactions,
     })
 
 
@@ -589,6 +774,120 @@ def add_expenditure_category(request):
         form = ExpenditureCategoryForm(user=request.user)
 
     return render(request, 'add_category.html', {'form': form, 'category_type': 'Expenditure'})
+
+
+@login_required
+def edit_income_category(request, category_id):
+    if request.user.user_type != 'super_admin':
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    category = get_object_or_404(IncomeCategory, id=category_id)
+    
+    if request.method == 'GET':
+        # Return category data as JSON for populating the form
+        return JsonResponse({
+            'id': category.id,
+            'name': category.name,
+            'description': category.description,
+            'scope': category.scope,
+            'branch': category.branch.id if category.branch else None,
+        })
+    
+    if request.method == 'POST':
+        form = IncomeCategoryForm(request.POST, user=request.user, instance=category)
+        if form.is_valid():
+            category = form.save(commit=False)
+            branch = form.cleaned_data.get('branch')
+            if branch:
+                category.branch = branch
+            else:
+                category.branch = None
+            category.save()
+            return JsonResponse({'success': True, 'message': 'Income category updated successfully!'})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def edit_expenditure_category(request, category_id):
+    if request.user.user_type != 'super_admin':
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    category = get_object_or_404(ExpenditureCategory, id=category_id)
+    
+    if request.method == 'GET':
+        # Return category data as JSON for populating the form
+        return JsonResponse({
+            'id': category.id,
+            'name': category.name,
+            'description': category.description,
+            'scope': category.scope,
+            'branch': category.branch.id if category.branch else None,
+        })
+    
+    if request.method == 'POST':
+        form = ExpenditureCategoryForm(request.POST, user=request.user, instance=category)
+        if form.is_valid():
+            category = form.save(commit=False)
+            branch = form.cleaned_data.get('branch')
+            if branch:
+                category.branch = branch
+            else:
+                category.branch = None
+            category.save()
+            return JsonResponse({'success': True, 'message': 'Expenditure category updated successfully!'})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def delete_income_category(request, category_id):
+    if request.user.user_type != 'super_admin':
+        messages.error(request, 'Only super admin can delete categories.')
+        return redirect('manage_categories')
+    
+    category = get_object_or_404(IncomeCategory, id=category_id)
+    
+    if request.method == 'POST':
+        category_name = category.name
+        # Check if category is used in transactions
+        transaction_count = Transaction.objects.filter(income_category=category).count()
+        if transaction_count > 0:
+            messages.error(request, f'Cannot delete category "{category_name}" because it is used in {transaction_count} transaction(s).')
+            return redirect('manage_categories')
+        
+        category.delete()
+        messages.success(request, f'Income category "{category_name}" deleted successfully!')
+        return redirect('manage_categories')
+    
+    return redirect('manage_categories')
+
+
+@login_required
+def delete_expenditure_category(request, category_id):
+    if request.user.user_type != 'super_admin':
+        messages.error(request, 'Only super admin can delete categories.')
+        return redirect('manage_categories')
+    
+    category = get_object_or_404(ExpenditureCategory, id=category_id)
+    
+    if request.method == 'POST':
+        category_name = category.name
+        # Check if category is used in transactions
+        transaction_count = Transaction.objects.filter(expenditure_category=category).count()
+        if transaction_count > 0:
+            messages.error(request, f'Cannot delete category "{category_name}" because it is used in {transaction_count} transaction(s).')
+            return redirect('manage_categories')
+        
+        category.delete()
+        messages.success(request, f'Expenditure category "{category_name}" deleted successfully!')
+        return redirect('manage_categories')
+    
+    return redirect('manage_categories')
 
 
 # New views for delete functionality and user management

@@ -50,6 +50,16 @@
           <form method="post" id="transactionForm">
             {% csrf_token %}
             
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
             <div class="row">
               {% if user.user_type == 'super_admin' %}
               <div class="col-md-6">
@@ -82,8 +92,8 @@
               {% else %}
               <div class="col-md-6">
                 <div class="mb-3">
-                  <div class="alert alert-danger">
-                    <i class="material-icons md-warning me-2"></i>
+                  <div class="alert {% if transaction_type == 'income' %}alert-success{% else %}alert-danger{% endif %}">
+                    <i class="material-icons {% if transaction_type == 'income' %}md-trending_up{% else %}md-warning{% endif %} me-2"></i>
                     <strong>Transaction Type:</strong> 
                     {% if transaction_type == 'income' %}
                       Adding Income Transaction
@@ -91,6 +101,8 @@
                       Adding Expenditure Transaction
                     {% endif %}
                   </div>
+                  <!-- Render the hidden transaction_type field from the form -->
+                  {{ form.transaction_type }}
                 </div>
               </div>
               {% endif %}
