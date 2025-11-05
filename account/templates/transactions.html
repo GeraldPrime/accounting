@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Transactions - Real Estate Accounting{% endblock %}
 
@@ -127,7 +128,7 @@
                 </td>
                 <td>
                   <strong class="{% if transaction.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
-                    {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₦{{ transaction.amount|floatformat:2 }}
+                    {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₦{{ transaction.amount|intcomma }}
                   </strong>
                 </td>
                 <td>
@@ -150,15 +151,15 @@
                 <div class="row text-center">
                   <div class="col-md-4">
                     <h6 class="text-success">Total Income</h6>
-                    <h5 class="text-success">₦{{ total_income|floatformat:2 }}</h5>
+                    <h5 class="text-success">₦{{ total_income|intcomma }}</h5>
                   </div>
                   <div class="col-md-4">
                     <h6 class="text-danger">Total Expenditure</h6>
-                    <h5 class="text-danger">₦{{ total_expenditure|floatformat:2 }}</h5>
+                    <h5 class="text-danger">₦{{ total_expenditure|intcomma }}</h5>
                   </div>
                   <div class="col-md-4">
                     <h6 class="text-primary">Net Balance</h6>
-                    <h5 class="text-primary {% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ net_balance|floatformat:2 }}</h5>
+                    <h5 class="text-primary {% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ net_balance|intcomma }}</h5>
                   </div>
                 </div>
               </div>

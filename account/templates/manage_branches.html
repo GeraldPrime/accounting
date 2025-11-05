@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Manage Branches - Vatican Garden Projects{% endblock %}
 
@@ -60,7 +61,7 @@
           </span>
           <div class="text">
             <h6 class="mb-1">Total Allocated</h6>
-            <span class="h4">₦{{ total_allocated|floatformat:0 }}</span>
+            <span class="h4">₦{{ total_allocated|intcomma }}</span>
             <span class="text-sm text-muted d-block">Funds distributed</span>
           </div>
         </article>
@@ -74,7 +75,7 @@
           </span>
           <div class="text">
             <h6 class="mb-1">Total Balance</h6>
-            <span class="h4 {% if total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ total_balance|floatformat:0 }}</span>
+            <span class="h4 {% if total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ total_balance|intcomma }}</span>
             <span class="text-sm text-muted d-block">All branches combined</span>
           </div>
         </article>
@@ -196,11 +197,11 @@
                 </div>
               </td>
               <td>
-                <div class="text-success fw-semibold">₦{{ branch.allocated_funds|floatformat:2 }}</div>
+                <div class="text-success fw-semibold">₦{{ branch.allocated_funds|intcomma }}</div>
               </td>
               <td>
                 <div class="{% if branch.get_balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-semibold">
-                  ₦{{ branch.get_balance|floatformat:2 }}
+                  ₦{{ branch.get_balance|intcomma }}
                 </div>
                 {% if branch.get_balance < 0 %}
                   <small class="text-danger">

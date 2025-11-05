@@ -74,7 +74,7 @@
           </span>
           <div class="text">
             <h6 class="mb-1 card-title">Total Income</h6>
-            <span class="h4 text-success">₦{{ total_income|floatformat:2|intcomma }}</span>
+            <span class="h4 text-success">₦{{ total_income|intcomma|intcomma }}</span>
             <span class="text-sm text-muted d-block">{{ income_count }} transactions</span>
           </div>
         </article>
@@ -88,7 +88,7 @@
           </span>
           <div class="text">
             <h6 class="mb-1 card-title">Total Expenditure</h6>
-            <span class="h4 text-danger">₦{{ total_expenditure|floatformat:2|intcomma }}</span>
+            <span class="h4 text-danger">₦{{ total_expenditure|intcomma|intcomma }}</span>
             <span class="text-sm text-muted d-block">{{ expenditure_count }} transactions</span>
           </div>
         </article>
@@ -102,7 +102,7 @@
           </span>
           <div class="text">
             <h6 class="mb-1 card-title">Net Balance</h6>
-            <span class="h4 {% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ net_balance|floatformat:2|intcomma }}</span>
+            <span class="h4 {% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ net_balance|intcomma|intcomma }}</span>
             <span class="text-sm text-muted d-block">Period result</span>
           </div>
         </article>
@@ -135,11 +135,11 @@
           <div class="row text-center">
             <div class="col-6">
               <h6 class="text-muted">Current Month</h6>
-              <h4 class="text-success">₦{{ current_month_income|floatformat:2|intcomma }}</h4>
+              <h4 class="text-success">₦{{ current_month_income|intcomma|intcomma }}</h4>
             </div>
             <div class="col-6">
               <h6 class="text-muted">Previous Month</h6>
-              <h4 class="text-info">₦{{ previous_month_income|floatformat:2|intcomma }}</h4>
+              <h4 class="text-info">₦{{ previous_month_income|intcomma|intcomma }}</h4>
             </div>
           </div>
           <hr>
@@ -199,7 +199,7 @@
                 <br><small class="text-muted">{{ category.count }} transactions</small>
               </div>
               <div class="text-end">
-                <strong class="text-success">₦{{ category.total|floatformat:2|intcomma }}</strong>
+                <strong class="text-success">₦{{ category.total|intcomma|intcomma }}</strong>
               </div>
             </div>
             {% endfor %}
@@ -223,7 +223,7 @@
                 <br><small class="text-muted">{{ category.count }} transactions</small>
               </div>
               <div class="text-end">
-                <strong class="text-danger">₦{{ category.total|floatformat:2|intcomma }}</strong>
+                <strong class="text-danger">₦{{ category.total|intcomma|intcomma }}</strong>
               </div>
             </div>
             {% endfor %}
@@ -260,10 +260,10 @@
                 <strong>{{ branch_data.branch.name }}</strong>
                 <br><small class="text-muted">{{ branch_data.branch.location }}</small>
               </td>
-              <td class="text-end text-success">₦{{ branch_data.income|floatformat:2|intcomma }}</td>
-              <td class="text-end text-danger">₦{{ branch_data.expenditure|floatformat:2|intcomma }}</td>
+              <td class="text-end text-success">₦{{ branch_data.income|intcomma|intcomma }}</td>
+              <td class="text-end text-danger">₦{{ branch_data.expenditure|intcomma|intcomma }}</td>
               <td class="text-end {% if branch_data.net >= 0 %}text-success{% else %}text-danger{% endif %}">
-                ₦{{ branch_data.net|floatformat:2|intcomma }}
+                ₦{{ branch_data.net|intcomma|intcomma }}
               </td>
               <td class="text-center">
                 <span class="badge bg-info">{{ branch_data.transaction_count }}</span>
@@ -327,9 +327,9 @@
                 </td>
                 <td class="text-end">
                   {% if transaction.transaction_type == 'income' %}
-                    <strong class="text-success">+₦{{ transaction.amount|floatformat:2|intcomma }}</strong>
+                    <strong class="text-success">+₦{{ transaction.amount|intcomma|intcomma }}</strong>
                   {% else %}
-                    <strong class="text-danger">-₦{{ transaction.amount|floatformat:2|intcomma }}</strong>
+                    <strong class="text-danger">-₦{{ transaction.amount|intcomma|intcomma }}</strong>
                   {% endif %}
                 </td>
                 <td>
@@ -370,10 +370,10 @@
             {% for trend in daily_trends|slice:":10" %}
             <tr>
               <td>{{ trend.date|date:"M d" }}</td>
-              <td class="text-end text-success">₦{{ trend.income|floatformat:2|intcomma }}</td>
-              <td class="text-end text-danger">₦{{ trend.expenditure|floatformat:2|intcomma }}</td>
+              <td class="text-end text-success">₦{{ trend.income|intcomma|intcomma }}</td>
+              <td class="text-end text-danger">₦{{ trend.expenditure|intcomma|intcomma }}</td>
               <td class="text-end {% if trend.net >= 0 %}text-success{% else %}text-danger{% endif %}">
-                ₦{{ trend.net|floatformat:2|intcomma }}
+                ₦{{ trend.net|intcomma|intcomma }}
               </td>
             </tr>
             {% endfor %}
@@ -404,7 +404,7 @@
           <h6>Key Insights</h6>
           <ul class="list-unstyled">
             <li><i class="material-icons md-check text-success me-2"></i>Total of {{ total_transactions }} transactions analyzed</li>
-            <li><i class="material-icons md-check text-success me-2"></i>Average transaction value: ₦{{ average_transaction_value|floatformat:2|intcomma }}</li>
+            <li><i class="material-icons md-check text-success me-2"></i>Average transaction value: ₦{{ average_transaction_value|intcomma|intcomma }}</li>
             {% if income_growth > 0 %}
             <li><i class="material-icons md-trending_up text-success me-2"></i>Income growth of {{ income_growth|floatformat:1 }}% this month</li>
             {% endif %}

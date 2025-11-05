@@ -1003,3 +1003,10 @@ Watching for file changes with StatReloader
 "GET /manage-branches/ HTTP/1.1" 200 32063
 "GET /assign-branch-admin/ HTTP/1.1" 200 20076
 "GET /reports/ HTTP/1.1" 200 37487
+Watching for file changes with StatReloader
+"GET /reports/ HTTP/1.1" 200 36244
+"GET /dashboard/ HTTP/1.1" 200 35860
+"GET /transactions/ HTTP/1.1" 200 49130
+"GET /transactions/ HTTP/1.1" 200 49130
+"GET /reports/ HTTP/1.1" 200 36131
+"GET /dashboard/ HTTP/1.1" 200 35860

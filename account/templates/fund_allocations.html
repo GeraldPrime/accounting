@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Fund Allocations - Real Estate Accounting{% endblock %}
 
@@ -43,7 +44,7 @@
                   <span class="badge bg-info">{{ allocation.to_branch.name }}</span>
                 </td>
                 <td class="text-success">
-                  <strong>₦{{ allocation.amount|floatformat:2 }}</strong>
+                  <strong>₦{{ allocation.amount|intcomma }}</strong>
                 </td>
                 <td>
                   <div class="text-truncate" style="max-width: 200px;" title="{{ allocation.description }}">

@@ -1,5 +1,6 @@
 
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Dashboard - Vatican Garden Projects{% endblock %}
 
@@ -84,9 +85,9 @@
         <div class="col-12">
             <div class="alert alert-danger" role="alert">
                 <i class="material-icons md-error me-2"></i>
-                <strong>Cannot Allocate Funds:</strong> Main branch has a negative balance of ₦{{ available_for_allocation|floatformat:2 }}. 
+                <strong>Cannot Allocate Funds:</strong> Main branch has a negative balance of ₦{{ available_for_allocation|intcomma }}. 
                 <strong>You must add income to the main branch first</strong> before you can allocate funds to other branches.
-                <br><small class="text-muted">Current balance: ₦{{ available_for_allocation|floatformat:2 }} - Add income to increase this balance.</small>
+                <br><small class="text-muted">Current balance: ₦{{ available_for_allocation|intcomma }} - Add income to increase this balance.</small>
             </div>
         </div>
     </div>
@@ -116,7 +117,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Total Income</h6>
-                            <span class="h4 text-success">₦{{ total_income|floatformat:2 }}</span>
+                            <span class="h4 text-success">₦{{ total_income|intcomma }}</span>
                             <span class="text-sm text-muted d-block">All branches combined</span>
                         </div>
                     </article>
@@ -130,7 +131,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Total Expenditure</h6>
-                            <span class="h4 text-danger">₦{{ total_expenditure|floatformat:2 }}</span>
+                            <span class="h4 text-danger">₦{{ total_expenditure|intcomma }}</span>
                             <span class="text-sm text-muted d-block">All branches combined</span>
                         </div>
                     </article>
@@ -144,7 +145,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Net Balance</h6>
-                            <span class="h4 {% if total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ total_balance|floatformat:2 }}</span>
+                            <span class="h4 {% if total_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ total_balance|intcomma }}</span>
                             <span class="text-sm text-muted d-block">Current balance</span>
                         </div>
                     </article>
@@ -160,7 +161,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Total Allocated</h6>
-                            <span class="h4 text-info">₦{{ total_allocated|floatformat:2 }}</span>
+                            <span class="h4 text-info">₦{{ total_allocated|intcomma }}</span>
                             <span class="text-sm text-muted d-block">Funds allocated</span>
                         </div>
                     </article>
@@ -188,7 +189,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Main Branch Income</h6>
-                            <span class="h4 text-success">₦{{ main_income|floatformat:2 }}</span>
+                            <span class="h4 text-success">₦{{ main_income|intcomma }}</span>
                             <span class="text-sm text-muted d-block">{{ main_branch.name }}</span>
                         </div>
                     </article>
@@ -202,7 +203,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Main Branch Expenditure</h6>
-                            <span class="h4 text-danger">₦{{ main_expenditure|floatformat:2 }}</span>
+                            <span class="h4 text-danger">₦{{ main_expenditure|intcomma }}</span>
                             <span class="text-sm text-muted d-block">{{ main_branch.name }}</span>
                         </div>
                     </article>
@@ -216,7 +217,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Main Branch Balance</h6>
-                            <span class="h4 {% if available_for_allocation >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ available_for_allocation|floatformat:2 }}</span>
+                            <span class="h4 {% if available_for_allocation >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ available_for_allocation|intcomma }}</span>
                             <span class="text-sm text-muted d-block">
                                 {% if available_for_allocation >= 0 %}
                                     Can allocate funds
@@ -237,7 +238,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Branch Income</h6>
-                            <span class="h4 text-success">₦{{ branch_income|floatformat:2 }}</span>
+                            <span class="h4 text-success">₦{{ branch_income|intcomma }}</span>
                             <span class="text-sm text-muted d-block">Total income</span>
                         </div>
                     </article>
@@ -251,7 +252,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Branch Expenditure</h6>
-                            <span class="h4 text-danger">₦{{ branch_expenditure|floatformat:2 }}</span>
+                            <span class="h4 text-danger">₦{{ branch_expenditure|intcomma }}</span>
                             <span class="text-sm text-muted d-block">Total expenditure</span>
                         </div>
                     </article>
@@ -265,7 +266,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Branch Balance</h6>
-                            <span class="h4 {% if branch_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ branch_balance|floatformat:2 }}</span>
+                            <span class="h4 {% if branch_balance >= 0 %}text-success{% else %}text-danger{% endif %}">₦{{ branch_balance|intcomma }}</span>
                             <span class="text-sm text-muted d-block">Current balance</span>
                         </div>
                     </article>
@@ -279,7 +280,7 @@
                         </span>
                         <div class="text">
                             <h6 class="mb-1 card-title">Available Funds</h6>
-                            <span class="h4 text-info">₦{{ branch_balance|floatformat:2 }}</span>
+                            <span class="h4 text-info">₦{{ branch_balance|intcomma }}</span>
                             <span class="text-sm text-muted d-block">Available to spend</span>
                         </div>
                     </article>
@@ -327,10 +328,10 @@
                                             <span class="text-muted small">No admin assigned</span>
                                         {% endfor %}
                                     </td>
-                                    <td class="text-success">₦{{ branch.get_total_income|floatformat:2 }}</td>
-                                    <td class="text-danger">₦{{ branch.get_total_expenditure|floatformat:2 }}</td>
+                                    <td class="text-success">₦{{ branch.get_total_income|intcomma }}</td>
+                                    <td class="text-danger">₦{{ branch.get_total_expenditure|intcomma }}</td>
                                     <td class="{% if branch.get_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                        ₦{{ branch.get_balance|floatformat:2 }}
+                                        ₦{{ branch.get_balance|intcomma }}
                                     </td>
                                     <td>
                                         {% if branch.is_active %}
@@ -384,7 +385,7 @@
                             </td>
                             <td>{{ transaction.description|truncatechars:50 }}</td>
                             <td class="{% if transaction.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
-                                ₦{{ transaction.amount|floatformat:2 }}
+                                ₦{{ transaction.amount|intcomma }}
                             </td>
                             <td>
                                 {% if transaction.income_category %}

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Allocate Funds - Vatican Garden Projects{% endblock %}
 
@@ -51,13 +52,13 @@
             <div>
               <small class="text-muted d-block">Available Balance</small>
               <h5 class="mb-0 {% if main_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
-                ₦{{ main_balance|floatformat:2 }}
+                ₦{{ main_balance|intcomma }}
               </h5>
             </div>
             <div class="text-end">
               <small class="text-muted d-block">Total Allocated</small>
               <h5 class="mb-0 text-info">
-                ₦{{ main_branch.allocated_funds|floatformat:2 }}
+                ₦{{ main_branch.allocated_funds|intcomma }}
               </h5>
             </div>
           </div>
@@ -96,13 +97,13 @@
             <div>
               <small class="text-muted d-block">Current Balance</small>
               <h5 class="mb-0 {% if pre_selected_branch.get_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
-                ₦{{ pre_selected_branch.get_balance|floatformat:2 }}
+                ₦{{ pre_selected_branch.get_balance|intcomma }}
               </h5>
             </div>
             <div class="text-end">
               <small class="text-muted d-block">Already Allocated</small>
               <h5 class="mb-0 text-info">
-                ₦{{ pre_selected_branch.allocated_funds|floatformat:2 }}
+                ₦{{ pre_selected_branch.allocated_funds|intcomma }}
               </h5>
             </div>
           </div>
@@ -154,7 +155,7 @@
               </div>
               <small class="text-muted">
                 <i class="material-icons md-info" style="font-size: 14px; vertical-align: middle;"></i>
-                Available: ₦{{ main_balance|floatformat:2 }}
+                Available: ₦{{ main_balance|intcomma }}
               </small>
               {% if form.amount.errors %}
                 <div class="alert alert-danger mt-2">{{ form.amount.errors.0 }}</div>
