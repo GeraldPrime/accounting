@@ -128,6 +128,9 @@ class FundAllocationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Store user for use in clean method
+        self.user = user
 
         if user and user.user_type == 'super_admin':
             # Only show sub branches for allocation
@@ -135,6 +138,34 @@ class FundAllocationForm(forms.ModelForm):
                 is_active=True,
                 branch_type='sub'
             )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        to_branch = cleaned_data.get('to_branch')
+        
+        if amount and self.user:
+            # Get the main branch (Enugu)
+            try:
+                main_branch = Branch.objects.get(branch_type='main', is_active=True)
+                main_balance = main_branch.get_balance()
+                
+                # Check if main branch has sufficient balance
+                if amount > main_balance:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError(
+                        f"❌ Insufficient Funds in Main Branch (Enugu)!\n\n"
+                        f"Cannot allocate ₦{amount:,.2f} because the main branch only has ₦{main_balance:,.2f} available.\n\n"
+                        f"Available Balance: ₦{main_balance:,.2f}\n"
+                        f"Requested Amount: ₦{amount:,.2f}\n"
+                        f"Shortfall: ₦{(amount - main_balance):,.2f}\n\n"
+                        f"Please reduce the allocation amount or add more funds to the main branch first."
+                    )
+            except Branch.DoesNotExist:
+                from django.core.exceptions import ValidationError
+                raise ValidationError("Main branch (Enugu) not found. Please contact system administrator.")
+        
+        return cleaned_data
 
 class TransactionForm(forms.ModelForm):
     class Meta:
@@ -220,6 +251,7 @@ class TransactionForm(forms.ModelForm):
                 raise forms.ValidationError("Branch administrators can only add expenditure transactions. Income can only be added by the main administrator.")
         
         # Add balance validation for expenditure transactions
+        # PREVENT NEGATIVE BALANCES - No expenditure should exceed available balance
         transaction_type = cleaned_data.get('transaction_type')
         amount = cleaned_data.get('amount')
         
@@ -232,11 +264,16 @@ class TransactionForm(forms.ModelForm):
             
             if branch:
                 current_balance = branch.get_balance()
-                if current_balance < amount:
+                
+                # Prevent negative balances - expenditure cannot exceed current balance
+                if amount > current_balance:
                     raise forms.ValidationError(
-                        f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
-                        f"but you're trying to spend ₦{amount:,.2f}. "
-                        f"Available balance: ₦{current_balance:,.2f}"
+                        f"❌ Insufficient Funds in {branch.name}!\n\n"
+                        f"Cannot record expenditure of ₦{amount:,.2f} because the branch only has ₦{current_balance:,.2f} available.\n\n"
+                        f"Available Balance: ₦{current_balance:,.2f}\n"
+                        f"Requested Expenditure: ₦{amount:,.2f}\n"
+                        f"Shortfall: ₦{(amount - current_balance):,.2f}\n\n"
+                        f"This system does NOT allow negative balances. Please ensure sufficient funds are available before recording expenditures."
                     )
         
         return cleaned_data

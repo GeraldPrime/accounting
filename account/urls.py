@@ -27,12 +27,15 @@ urlpatterns = [
     path('allocate-funds/', views.allocate_funds, name='allocate_funds'),
     path('allocate-funds/<int:branch_id>/', views.allocate_funds, name='allocate_funds_with_branch'),
     path('fund-allocations/', views.fund_allocations, name='fund_allocations'),
+    path('reverse-allocation/<int:allocation_id>/', views.reverse_fund_allocation, name='reverse_fund_allocation'),
+    path('delete-allocation/<int:allocation_id>/', views.delete_fund_allocation, name='delete_fund_allocation'),
 
     # Transactions
     path('transactions/', views.transactions, name='transactions'),
     path('add-transaction/', views.add_transaction, name='add_transaction'),
     path('add-income/', views.add_income, name='add_income'),
     path('add-expenditure/', views.add_expenditure, name='add_expenditure'),
+    path('edit-transaction/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
     path('delete-transaction/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
 
     # Categories

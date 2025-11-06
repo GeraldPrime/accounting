@@ -1010,3 +1010,244 @@ Watching for file changes with StatReloader
 "GET /transactions/ HTTP/1.1" 200 49130
 "GET /reports/ HTTP/1.1" 200 36131
 "GET /dashboard/ HTTP/1.1" 200 35860
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 35860
+"GET /manage-users/ HTTP/1.1" 200 32354
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 17583
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 17583
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/urls.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 19703
+"GET /assign-branch-admin/user/4/ HTTP/1.1" 200 19703
+"GET /add-income/ HTTP/1.1" 200 20218
+"GET /transactions/ HTTP/1.1" 200 73509
+"GET /edit-transaction/24/ HTTP/1.1" 200 244
+"POST /edit-transaction/24/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 73505
+"GET /dashboard/ HTTP/1.1" 200 35856
+"GET /manage-branches/ HTTP/1.1" 200 30823
+"GET /transactions/ HTTP/1.1" 200 73505
+"POST /delete-transaction/21/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 71588
+"GET /dashboard/ HTTP/1.1" 200 35808
+"GET /manage-branches/ HTTP/1.1" 200 30823
+"GET /manage-branches/ HTTP/1.1" 200 30823
+"GET /dashboard/ HTTP/1.1" 200 35808
+"GET /transactions/ HTTP/1.1" 200 71588
+"POST /delete-transaction/19/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 71653
+"GET /dashboard/ HTTP/1.1" 200 35845
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 35845
+"GET /transactions/ HTTP/1.1" 200 75793
+"GET /edit-transaction/15/ HTTP/1.1" 200 254
+"POST /delete-transaction/15/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 73878
+"GET /dashboard/ HTTP/1.1" 200 35841
+"GET /transactions/ HTTP/1.1" 200 73878
+"GET /edit-transaction/16/ HTTP/1.1" 200 254
+"POST /delete-transaction/16/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 71964
+"GET /dashboard/ HTTP/1.1" 200 35805
+"GET /dashboard/ HTTP/1.1" 200 35805
+"GET /dashboard/ HTTP/1.1" 200 35805
+"GET /dashboard/ HTTP/1.1" 200 35805
+"GET /manage-categories/ HTTP/1.1" 200 53147
+"GET /reports/ HTTP/1.1" 200 34455
+"GET /fund-allocations/ HTTP/1.1" 200 19999
+"GET /allocate-funds/ HTTP/1.1" 200 23529
+"GET /dashboard/ HTTP/1.1" 200 35805
+"GET /transactions/ HTTP/1.1" 200 71964
+"GET /add-transaction/ HTTP/1.1" 200 20194
+"GET /fund-allocations/ HTTP/1.1" 200 19999
+"GET /allocate-funds/ HTTP/1.1" 200 23529
+"POST /allocate-funds/ HTTP/1.1" 302 0
+"GET /fund-allocations/ HTTP/1.1" 200 21085
+"GET /dashboard/ HTTP/1.1" 200 35829
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /transactions/ HTTP/1.1" 200 75767
+"GET /edit-transaction/26/ HTTP/1.1" 200 243
+"POST /delete-transaction/26/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 73880
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 35840
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-users/ HTTP/1.1" 200 32354
+"GET /reset-password/4/ HTTP/1.1" 200 11651
+"POST /reset-password/4/ HTTP/1.1" 302 0
+"GET /manage-users/ HTTP/1.1" 200 32637
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /logout/ HTTP/1.1" 302 0
+"GET /login/ HTTP/1.1" 200 7312
+"POST /login/ HTTP/1.1" 200 7397
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /login/ HTTP/1.1" 302 0
+"GET /dashboard/ HTTP/1.1" 200 36093
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-users/ HTTP/1.1" 200 32354
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /logout/ HTTP/1.1" 302 0
+"GET /login/ HTTP/1.1" 200 7312
+"POST /login/ HTTP/1.1" 302 0
+"GET /dashboard/ HTTP/1.1" 200 24109
+/Users/admin/Desktop/Accounting/account/forms.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 23856
+"GET /dashboard/ HTTP/1.1" 200 23856
+"GET /logout/ HTTP/1.1" 302 0
+"GET /login/ HTTP/1.1" 200 7312
+"POST /login/ HTTP/1.1" 302 0
+"GET /dashboard/ HTTP/1.1" 200 36093
+"GET /transactions/ HTTP/1.1" 200 73880
+"GET /manage-branches/ HTTP/1.1" 200 31048
+"GET /dashboard/ HTTP/1.1" 200 35840
+"GET /fund-allocations/ HTTP/1.1" 200 20794
+"GET /allocate-funds/ HTTP/1.1" 200 23529
+"POST /allocate-funds/ HTTP/1.1" 302 0
+"GET /fund-allocations/ HTTP/1.1" 200 21886
+"GET /dashboard/ HTTP/1.1" 200 35844
+"GET /logout/ HTTP/1.1" 302 0
+"GET /login/ HTTP/1.1" 200 7312
+"POST /login/ HTTP/1.1" 302 0
+"GET /dashboard/ HTTP/1.1" 200 24144
+"GET /add-expenditure/ HTTP/1.1" 200 15575
+"POST /add-expenditure/ HTTP/1.1" 200 16734
+"GET /logout/ HTTP/1.1" 302 0
+"GET /login/ HTTP/1.1" 200 7312
+"POST /login/ HTTP/1.1" 302 0
+"GET /dashboard/ HTTP/1.1" 200 36097
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/urls.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 35844
+"GET /transactions/ HTTP/1.1" 200 77695
+"GET /edit-transaction/13/ HTTP/1.1" 200 242
+"POST /delete-transaction/13/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 75811
+"GET /dashboard/ HTTP/1.1" 200 35850
+/Users/admin/Desktop/Accounting/account/models.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/models.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/models.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /transactions/ HTTP/1.1" 200 75811
+"GET /edit-transaction/8/ HTTP/1.1" 200 242
+"POST /delete-transaction/8/ HTTP/1.1" 200 64
+"GET /transactions/ HTTP/1.1" 200 73925
+"GET /dashboard/ HTTP/1.1" 200 35850
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /dashboard/ HTTP/1.1" 200 35850
+Forbidden: /edit-transaction/12/
+"GET /edit-transaction/12/ HTTP/1.1" 403 509
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /fund-allocations/ HTTP/1.1" 200 30453
+"GET /dashboard/ HTTP/1.1" 200 35850
+"GET /dashboard/ HTTP/1.1" 302 0
+"GET /login/?next=/dashboard/ HTTP/1.1" 200 7050
+"GET /static/assets/css/style.css?v=1.0.0 HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/jquery-3.6.0.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/bootstrap.bundle.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/chart.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/select2.min.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/perfect-scrollbar.js HTTP/1.1" 304 0
+"GET /static/assets/js/main.js?v=1.0.0 HTTP/1.1" 304 0
+"GET /static/assets/js/custom-chart.js HTTP/1.1" 304 0
+"GET /static/assets/js/vendors/jquery.fullscreen.min.js HTTP/1.1" 304 0
+"GET /static/assets/css/vendors/perfect-scrollbar.css HTTP/1.1" 200 2598
+"GET /static/assets/css/vendors/select2.min.css HTTP/1.1" 200 15445
+"GET /static/assets/css/vendors/normalize.css HTTP/1.1" 200 6167
+"GET /static/assets/css/vendors/material-icon-round.css HTTP/1.1" 200 70132
+"GET /static/assets/css/vendors/bootstrap.css HTTP/1.1" 200 257573
+"POST /login/?next=/dashboard/ HTTP/1.1" 302 0
+"GET /dashboard/ HTTP/1.1" 200 24144
+"GET /static/assets/css/style.css HTTP/1.1" 304 0
+"GET /static/assets/imgs/vaticanlogo.jpeg HTTP/1.1" 200 224289
+"GET /static/assets/fonts/material-icon/MaterialIcons-Round.woff2 HTTP/1.1" 304 0
+"GET /dashboard/ HTTP/1.1" 200 35850
+"GET /transactions/ HTTP/1.1" 200 75179
+"GET /fund-allocations/ HTTP/1.1" 200 30453
+"POST /reverse-allocation/10/ HTTP/1.1" 302 0
+"GET /fund-allocations/ HTTP/1.1" 200 30967
+"POST /reverse-allocation/8/ HTTP/1.1" 302 0
+"GET /fund-allocations/ HTTP/1.1" 200 32058
+"GET /dashboard/ HTTP/1.1" 200 35955
+"GET /transactions/ HTTP/1.1" 200 79668
+"GET /dashboard/ HTTP/1.1" 200 23946
+"GET /dashboard/ HTTP/1.1" 200 23946
+"GET /reports/ HTTP/1.1" 200 39504
+"GET /dashboard/ HTTP/1.1" 200 35955
+"GET /allocate-funds/ HTTP/1.1" 200 23535
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /manage-categories/ HTTP/1.1" 200 57700
+"POST /delete-income-category/7/ HTTP/1.1" 302 0
+"GET /manage-categories/ HTTP/1.1" 200 58294
+"GET /add-income-category/ HTTP/1.1" 200 24879
+"GET /manage-categories/ HTTP/1.1" 200 57700
+"GET /transactions/ HTTP/1.1" 200 79668
+"GET /transactions/ HTTP/1.1" 200 79668
+"GET /transactions/ HTTP/1.1" 200 79668
+"GET /dashboard/ HTTP/1.1" 200 23946
+"GET /transactions/ HTTP/1.1" 200 41448
+"GET /add-expenditure/ HTTP/1.1" 200 15645
+"GET /dashboard/ HTTP/1.1" 200 23946
+/Users/admin/Desktop/Accounting/account/admin.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /transactions/ HTTP/1.1" 200 79668

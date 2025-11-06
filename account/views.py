@@ -6,6 +6,7 @@ from django.db.models import Sum, Q
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.utils import timezone
 from decimal import Decimal
 from .models import *
 from .forms import *
@@ -322,43 +323,70 @@ def assign_branch_admin(request, branch_id=None, user_id=None):
             return redirect('manage_users')
 
     if request.method == 'POST':
-        # Handle the case where branch is pre-selected
-        post_data = request.POST.copy()
-        
-        # If branch_id is provided but not in POST, add it
-        if branch_id and not post_data.get('branch'):
-            post_data['branch'] = branch_id
-        
-        form = BranchAdminAssignmentForm(post_data)
-
-        if form.is_valid():
-            branch = form.cleaned_data['branch']
-            admins = form.cleaned_data['admins']
-
-            # Clear existing assignments for this branch
-            branch.admins.clear()
-
-            # Add new assignments
-            if admins:
-                for admin in admins:
-                    branch.admins.add(admin)
-                admin_names = ', '.join([admin.get_full_name() for admin in admins])
-                messages.success(request, f'Admins ({admin_names}) assigned to "{branch.name}" successfully!')
-            else:
-                messages.success(request, f'All admin assignments removed from "{branch.name}".')
+        # Handle different cases: branch assignment or user assignment
+        if user_id:
+            # User is pre-selected, get branches from POST
+            selected_branches = request.POST.getlist('branches')
             
-            # Redirect based on where user came from
-            if branch_id:
-                return redirect('manage_branches')
-            elif user_id:
-                return redirect('manage_users')
+            # Clear all existing branch assignments for this user
+            pre_selected_user.managed_branches.clear()
+            
+            # Add new assignments
+            if selected_branches:
+                branches_assigned = []
+                for branch_id_str in selected_branches:
+                    try:
+                        branch = Branch.objects.get(id=branch_id_str, is_active=True)
+                        branch.admins.add(pre_selected_user)
+                        branches_assigned.append(branch.name)
+                    except Branch.DoesNotExist:
+                        pass
+                
+                if branches_assigned:
+                    branch_names = ', '.join(branches_assigned)
+                    messages.success(request, f'User "{pre_selected_user.get_full_name()}" assigned to branches: {branch_names}')
+                else:
+                    messages.warning(request, 'No valid branches selected.')
             else:
-                return redirect('manage_branches')
+                messages.success(request, f'All branch assignments removed from user "{pre_selected_user.get_full_name()}".')
+            
+            return redirect('manage_users')
         else:
-            # Display form errors
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
+            # Branch case: standard flow
+            post_data = request.POST.copy()
+            
+            # If branch_id is provided but not in POST, add it
+            if branch_id and not post_data.get('branch'):
+                post_data['branch'] = branch_id
+            
+            form = BranchAdminAssignmentForm(post_data)
+
+            if form.is_valid():
+                branch = form.cleaned_data['branch']
+                admins = form.cleaned_data['admins']
+
+                # Clear existing assignments for this branch
+                branch.admins.clear()
+
+                # Add new assignments
+                if admins:
+                    for admin in admins:
+                        branch.admins.add(admin)
+                    admin_names = ', '.join([admin.get_full_name() for admin in admins])
+                    messages.success(request, f'Admins ({admin_names}) assigned to "{branch.name}" successfully!')
+                else:
+                    messages.success(request, f'All admin assignments removed from "{branch.name}".')
+                
+                # Redirect based on where user came from
+                if branch_id:
+                    return redirect('manage_branches')
+                else:
+                    return redirect('manage_branches')
+            else:
+                # Display form errors
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
     else:
         # Pre-populate form if branch or user is specified
         initial_data = {}
@@ -378,10 +406,15 @@ def assign_branch_admin(request, branch_id=None, user_id=None):
     
     # Get list of currently assigned admin IDs for pre-checking
     assigned_admin_ids = []
+    assigned_branch_ids = []
+    all_branches = Branch.objects.filter(is_active=True).order_by('name')
+    
     if pre_selected_branch:
         assigned_admin_ids = list(pre_selected_branch.admins.values_list('id', flat=True))
     elif pre_selected_user:
         assigned_admin_ids = [pre_selected_user.id]
+        # Get branches this user is currently assigned to
+        assigned_branch_ids = list(pre_selected_user.managed_branches.values_list('id', flat=True))
     
     context = {
         'form': form,
@@ -389,6 +422,8 @@ def assign_branch_admin(request, branch_id=None, user_id=None):
         'pre_selected_user': pre_selected_user,
         'branch_admins': branch_admins,
         'assigned_admin_ids': assigned_admin_ids,
+        'all_branches': all_branches,
+        'assigned_branch_ids': assigned_branch_ids,
     }
     
     return render(request, 'assign_branch_admin.html', context)
@@ -480,6 +515,11 @@ def allocate_funds(request, branch_id=None):
                 return redirect('manage_branches')
             else:
                 return redirect('fund_allocations')
+        else:
+            # Display form validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
     else:
         # Pre-populate form if branch is specified
         initial_data = {}
@@ -514,6 +554,150 @@ def fund_allocations(request):
 
 
 @login_required
+def reverse_fund_allocation(request, allocation_id):
+    """
+    Reverse a fund allocation by creating offsetting transactions.
+    This maintains complete audit trail while correcting allocation errors.
+    
+    IMPORTANT: This does NOT delete the original allocation.
+    Instead, it creates a reversal allocation that cancels it out.
+    """
+    if request.user.user_type != 'super_admin':
+        messages.error(request, 'Only super admin can reverse fund allocations.')
+        return redirect('dashboard')
+    
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('fund_allocations')
+    
+    try:
+        # Get the original allocation
+        original_allocation = FundAllocation.objects.select_related(
+            'from_branch', 'to_branch'
+        ).get(id=allocation_id)
+        
+        # Check if already reversed
+        if not original_allocation.is_active:
+            messages.warning(request, 'This allocation has already been reversed.')
+            return redirect('fund_allocations')
+        
+        # Get branches
+        main_branch = original_allocation.from_branch
+        sub_branch = original_allocation.to_branch
+        amount = original_allocation.amount
+        
+        # VALIDATE: Check if sub-branch has sufficient balance to reverse
+        sub_branch_balance = sub_branch.get_balance()
+        if sub_branch_balance < amount:
+            messages.error(request,
+                f"❌ Cannot Reverse Allocation!\n\n"
+                f"The allocation of ₦{amount:,.2f} cannot be reversed because {sub_branch.name} "
+                f"only has ₦{sub_branch_balance:,.2f} available.\n\n"
+                f"The branch has already spent ₦{(amount - sub_branch_balance):,.2f} of the allocated funds.\n\n"
+                f"Please ensure {sub_branch.name} has sufficient balance before reversing this allocation."
+            )
+            return redirect('fund_allocations')
+        
+        # Create the reversal allocation record
+        reversal_allocation = FundAllocation.objects.create(
+            from_branch=sub_branch,  # Reversed: now from sub to main
+            to_branch=main_branch,   # Reversed: now to main
+            amount=amount,
+            description=f"REVERSAL of allocation #{original_allocation.id}: {original_allocation.description}",
+            allocated_by=request.user,
+            is_active=True
+        )
+        
+        # Get or create reversal categories
+        income_category, _ = IncomeCategory.objects.get_or_create(
+            name='Fund Allocation Reversal',
+            defaults={
+                'description': 'Reversal of fund allocations',
+                'scope': 'all',
+                'created_by': request.user
+            }
+        )
+        
+        expenditure_category, _ = ExpenditureCategory.objects.get_or_create(
+            name='Fund Allocation Reversal',
+            defaults={
+                'description': 'Reversal of fund allocations',
+                'scope': 'all',
+                'created_by': request.user
+            }
+        )
+        
+        # Create EXPENDITURE transaction for sub-branch (money leaving)
+        Transaction.objects.create(
+            branch=sub_branch,
+            transaction_type='expenditure',
+            amount=amount,
+            description=f"REVERSAL: Returning ₦{amount:,.2f} to {main_branch.name} (Original allocation #{original_allocation.id})",
+            date=timezone.now().date(),
+            expenditure_category=expenditure_category,
+            fund_allocation=reversal_allocation,
+            created_by=request.user
+        )
+        
+        # Create INCOME transaction for main branch (money returning)
+        Transaction.objects.create(
+            branch=main_branch,
+            transaction_type='income',
+            amount=amount,
+            description=f"REVERSAL: Funds returned from {sub_branch.name} (Original allocation #{original_allocation.id})",
+            date=timezone.now().date(),
+            income_category=income_category,
+            fund_allocation=reversal_allocation,
+            created_by=request.user
+        )
+        
+        # Update allocated funds on sub-branch
+        sub_branch.allocated_funds -= amount
+        sub_branch.save()
+        
+        # Mark original allocation as inactive (reversed)
+        original_allocation.is_active = False
+        original_allocation.save()
+        
+        messages.success(request, 
+            f"✅ Fund Allocation Reversed Successfully!\n\n"
+            f"₦{amount:,.2f} has been returned from {sub_branch.name} to {main_branch.name}.\n\n"
+            f"Both the original allocation and the reversal are preserved in the audit trail."
+        )
+        
+    except FundAllocation.DoesNotExist:
+        messages.error(request, 'Allocation not found.')
+    except Exception as e:
+        messages.error(request, f'Error reversing allocation: {str(e)}')
+    
+    return redirect('fund_allocations')
+
+
+@login_required
+def delete_fund_allocation(request, allocation_id):
+    """
+    Block deletion of fund allocations for audit compliance.
+    Redirects to fund allocations with error message.
+    """
+    if request.user.user_type != 'super_admin':
+        messages.error(request, 'Only super admin can manage fund allocations.')
+        return redirect('dashboard')
+    
+    messages.error(request, 
+        "❌ Fund Allocations Cannot Be Deleted!\n\n"
+        "For financial integrity and audit compliance, fund allocations cannot be deleted.\n\n"
+        "To correct an error, please use the 'REVERSE' button instead. "
+        "This creates offsetting transactions that maintain a complete audit trail.\n\n"
+        "The reversal will:\n"
+        "• Return the funds from the sub-branch to the main branch\n"
+        "• Create proper accounting entries for both branches\n"
+        "• Mark the original allocation as reversed\n"
+        "• Preserve complete transaction history"
+    )
+    return redirect('fund_allocations')
+
+
+@login_required
 def transactions(request):
     if request.user.user_type == 'super_admin':
         transactions_list = Transaction.objects.select_related(
@@ -539,6 +723,14 @@ def transactions(request):
     type_filter = request.GET.get('type')
     if type_filter:
         transactions_list = transactions_list.filter(transaction_type=type_filter)
+    
+    # Filter by category
+    income_category_filter = request.GET.get('income_category')
+    expenditure_category_filter = request.GET.get('expenditure_category')
+    if income_category_filter:
+        transactions_list = transactions_list.filter(income_category_id=income_category_filter)
+    if expenditure_category_filter:
+        transactions_list = transactions_list.filter(expenditure_category_id=expenditure_category_filter)
 
     # Date range filter
     start_date = request.GET.get('start_date')
@@ -558,6 +750,10 @@ def transactions(request):
         Sum('amount'))['amount__sum'] or Decimal('0')
     net_balance = total_income - total_expenditure
 
+    # Get categories for filter dropdowns
+    income_categories = IncomeCategory.objects.filter(is_active=True).order_by('name')
+    expenditure_categories = ExpenditureCategory.objects.filter(is_active=True).order_by('name')
+    
     context = {
         'transactions': transactions_list[:100],  # Limit to 100 for performance
         'branches': branches,
@@ -568,6 +764,10 @@ def transactions(request):
         'selected_type': type_filter,
         'start_date': start_date,
         'end_date': end_date,
+        'income_categories': income_categories,
+        'expenditure_categories': expenditure_categories,
+        'selected_income_category': income_category_filter,
+        'selected_expenditure_category': expenditure_category_filter,
     }
     return render(request, 'transactions.html', context)
 
@@ -598,20 +798,15 @@ def add_transaction(request):
                     return redirect('dashboard')
                 transaction.branch = branch
 
-            # Additional balance validation at view level
-            if transaction.transaction_type == 'expenditure':
-                current_balance = transaction.branch.get_balance()
-                if current_balance < transaction.amount:
-                    messages.error(request, 
-                        f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
-                        f"but you're trying to spend ₦{transaction.amount:,.2f}. "
-                        f"Available balance: ₦{current_balance:,.2f}"
-                    )
-                    return render(request, 'add_transaction.html', {'form': form})
-
+            # Note: Balance validation is already handled in the form's clean method
             transaction.save()
             messages.success(request, 'Transaction added successfully!')
             return redirect('transactions')
+        else:
+            # Form is invalid - display validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
     else:
         form = TransactionForm(user=request.user)
 
@@ -635,6 +830,11 @@ def add_income(request):
             transaction.save()
             messages.success(request, 'Income transaction added successfully!')
             return redirect('transactions')
+        else:
+            # Form is invalid - display validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
     else:
         form = TransactionForm(user=request.user, transaction_type='income')
 
@@ -660,16 +860,7 @@ def add_expenditure(request):
                     return redirect('dashboard')
                 transaction.branch = branch
 
-            # Additional balance validation at view level
-            current_balance = transaction.branch.get_balance()
-            if current_balance < transaction.amount:
-                messages.error(request, 
-                    f"Insufficient funds. Current balance is ₦{current_balance:,.2f}, "
-                    f"but you're trying to spend ₦{transaction.amount:,.2f}. "
-                    f"Available balance: ₦{current_balance:,.2f}"
-                )
-                return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
-
+            # Note: Balance validation is already handled in the form's clean method
             try:
                 transaction.save()
                 messages.success(request, 'Expenditure transaction added successfully!')
@@ -678,8 +869,10 @@ def add_expenditure(request):
                 messages.error(request, f'Error saving transaction: {str(e)}')
                 return render(request, 'add_transaction.html', {'form': form, 'transaction_type': 'expenditure'})
         else:
-            # Form is invalid - display errors
-            messages.error(request, 'Please correct the errors below.')
+            # Form is invalid - display validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
     else:
         form = TransactionForm(user=request.user, transaction_type='expenditure')
 
@@ -854,10 +1047,31 @@ def delete_income_category(request, category_id):
     
     if request.method == 'POST':
         category_name = category.name
-        # Check if category is used in transactions
+        # Check if category is used in transactions (including fund allocation transactions)
         transaction_count = Transaction.objects.filter(income_category=category).count()
+        
         if transaction_count > 0:
-            messages.error(request, f'Cannot delete category "{category_name}" because it is used in {transaction_count} transaction(s).')
+            # Check if any are fund allocation transactions
+            fund_allocation_count = Transaction.objects.filter(
+                income_category=category, 
+                fund_allocation__isnull=False
+            ).count()
+            regular_count = transaction_count - fund_allocation_count
+            
+            error_msg = f"❌ Cannot Delete Income Category!\n\n" \
+                       f'"{category_name}" cannot be deleted because it is used in {transaction_count} transaction(s):\n'
+            
+            if fund_allocation_count > 0:
+                error_msg += f"• {fund_allocation_count} fund allocation transaction(s) (protected)\n"
+            if regular_count > 0:
+                error_msg += f"• {regular_count} regular income transaction(s)\n"
+            
+            error_msg += "\nCategories with transactions cannot be deleted to preserve financial integrity and audit trail.\n\n" \
+                        "You can:\n" \
+                        "• Mark the category as inactive instead (hides from new transactions)\n" \
+                        "• Keep it for historical reference"
+            
+            messages.error(request, error_msg)
             return redirect('manage_categories')
         
         category.delete()
@@ -877,10 +1091,31 @@ def delete_expenditure_category(request, category_id):
     
     if request.method == 'POST':
         category_name = category.name
-        # Check if category is used in transactions
+        # Check if category is used in transactions (including fund allocation transactions)
         transaction_count = Transaction.objects.filter(expenditure_category=category).count()
+        
         if transaction_count > 0:
-            messages.error(request, f'Cannot delete category "{category_name}" because it is used in {transaction_count} transaction(s).')
+            # Check if any are fund allocation transactions
+            fund_allocation_count = Transaction.objects.filter(
+                expenditure_category=category, 
+                fund_allocation__isnull=False
+            ).count()
+            regular_count = transaction_count - fund_allocation_count
+            
+            error_msg = f"❌ Cannot Delete Expenditure Category!\n\n" \
+                       f'"{category_name}" cannot be deleted because it is used in {transaction_count} transaction(s):\n'
+            
+            if fund_allocation_count > 0:
+                error_msg += f"• {fund_allocation_count} fund allocation transaction(s) (protected)\n"
+            if regular_count > 0:
+                error_msg += f"• {regular_count} regular expenditure transaction(s)\n"
+            
+            error_msg += "\nCategories with transactions cannot be deleted to preserve financial integrity and audit trail.\n\n" \
+                        "You can:\n" \
+                        "• Mark the category as inactive instead (hides from new transactions)\n" \
+                        "• Keep it for historical reference"
+            
+            messages.error(request, error_msg)
             return redirect('manage_categories')
         
         category.delete()
@@ -904,24 +1139,56 @@ def delete_branch(request, branch_id):
         messages.error(request, 'Cannot delete the main branch.')
         return redirect('manage_branches')
 
-    if request.method == 'POST':
-        branch_name = branch.name
-        branch.delete()
-        messages.success(request, f'Branch "{branch_name}" deleted successfully!')
+    # Check for fund allocations (both sent and received)
+    allocations_made = branch.fund_allocations_made.count()
+    allocations_received = branch.fund_allocations_received.count()
+    active_allocations_made = branch.fund_allocations_made.filter(is_active=True).count()
+    active_allocations_received = branch.fund_allocations_received.filter(is_active=True).count()
+    
+    total_allocations = allocations_made + allocations_received
+    total_active_allocations = active_allocations_made + active_allocations_received
+    
+    # BLOCK deletion if there are ANY fund allocations (active or reversed)
+    if total_allocations > 0:
+        messages.error(request,
+            f"❌ Cannot Delete Branch with Fund Allocations!\n\n"
+            f'"{branch.name}" cannot be deleted because it has {total_allocations} fund allocation(s) '
+            f'({total_active_allocations} active, {total_allocations - total_active_allocations} reversed).\n\n'
+            f"For financial integrity and audit compliance, branches with fund allocation history CANNOT be deleted.\n\n"
+            f"If you need to correct allocation errors:\n"
+            f"• Use the 'REVERSE' button on the Fund Allocations page\n"
+            f"• This maintains complete audit trail\n\n"
+            f"If you need to deactivate this branch:\n"
+            f"• Mark it as inactive instead of deleting it\n"
+            f"• This preserves all historical financial data"
+        )
         return redirect('manage_branches')
 
-    # Check for related data
+    if request.method == 'POST':
+        branch_name = branch.name
+        transaction_count = branch.transactions.count()
+        
+        try:
+            branch.delete()
+            messages.success(request, 
+                f'Branch "{branch_name}" deleted successfully!\n'
+                f'{transaction_count} transaction(s) were also deleted.'
+            )
+        except Exception as e:
+            messages.error(request, f'Error deleting branch: {str(e)}')
+        
+        return redirect('manage_branches')
+
+    # Check for related data for confirmation page
     transaction_count = branch.transactions.count()
-    allocation_count = branch.fund_allocations_received.count()
 
     return render(request, 'confirm_delete.html', {
         'object_name': f'Branch "{branch.name}"',
         'object_type': 'branch',
         'related_data': {
             'Transactions': transaction_count,
-            'Fund Allocations': allocation_count,
         },
-        'warning': 'Deleting this branch will also delete all related transactions and fund allocations.',
+        'warning': 'Deleting this branch will also delete all related transactions.',
         'delete_url': request.path
     })
 
@@ -1194,3 +1461,198 @@ def reports(request):
     }
     
     return render(request, 'reports.html', context)
+
+
+@login_required
+def edit_transaction(request, transaction_id):
+    """
+    Edit transaction - super admin only
+    
+    IMPORTANT: This function affects branch balances and all financial calculations.
+    The accounting system is interdependent:
+    - Branch balance = Total Income - Total Expenditure
+    - Editing a transaction automatically recalculates all balances
+    - All reports and statistics are dynamically computed from transactions
+    - Changes to amount, type, or branch will affect financial integrity
+    
+    PROTECTED: Transactions linked to fund allocations CANNOT be edited.
+    """
+    if request.user.user_type != 'super_admin':
+        return JsonResponse({'success': False, 'message': 'Unauthorized access'}, status=403)
+    
+    try:
+        transaction = Transaction.objects.get(id=transaction_id)
+        
+        # BLOCK editing of transactions linked to fund allocations
+        if transaction.fund_allocation:
+            return JsonResponse({
+                'success': False, 
+                'message': (
+                    "❌ Cannot Edit Fund Allocation Transaction!\n\n"
+                    f"This transaction is part of Fund Allocation #{transaction.fund_allocation.id}.\n\n"
+                    "Transactions created by fund allocations are PROTECTED and cannot be edited directly.\n\n"
+                    "To correct allocation errors:\n"
+                    "• Go to the 'Fund Allocations' page\n"
+                    "• Click the 'REVERSE' button for the allocation\n"
+                    "• This will properly reverse both the income and expenditure transactions\n\n"
+                    "This protection ensures fund allocation integrity and maintains audit trail."
+                )
+            }, status=403)
+            
+    except Transaction.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Transaction not found'}, status=404)
+    
+    if request.method == 'GET':
+        # Return transaction data as JSON for modal
+        data = {
+            'success': True,
+            'transaction': {
+                'id': transaction.id,
+                'date': transaction.date.strftime('%Y-%m-%d'),
+                'description': transaction.description,
+                'amount': str(transaction.amount),
+                'transaction_type': transaction.transaction_type,
+                'branch': transaction.branch.id if transaction.branch else None,
+                'income_category': transaction.income_category.id if transaction.income_category else None,
+                'expenditure_category': transaction.expenditure_category.id if transaction.expenditure_category else None,
+            }
+        }
+        return JsonResponse(data)
+    
+    elif request.method == 'POST':
+        # Update transaction with validation to prevent negative balances
+        try:
+            old_amount = transaction.amount
+            old_type = transaction.transaction_type
+            old_branch = transaction.branch
+            
+            new_amount = Decimal(request.POST.get('amount'))
+            transaction.date = request.POST.get('date')
+            transaction.description = request.POST.get('description')
+            
+            # Update branch
+            branch_id = request.POST.get('branch')
+            if branch_id:
+                new_branch = Branch.objects.get(id=branch_id)
+            else:
+                new_branch = old_branch
+            
+            # VALIDATE: Check if the change would cause negative balance
+            # Calculate the impact on balance
+            if transaction.transaction_type == 'income':
+                # If reducing income, check if balance would go negative
+                if new_amount < old_amount:
+                    impact = old_amount - new_amount
+                    current_balance = new_branch.get_balance()
+                    new_balance = current_balance - impact
+                    
+                    if new_balance < 0:
+                        return JsonResponse({
+                            'success': False, 
+                            'message': f"❌ Cannot reduce income!\n\nReducing this income from ₦{old_amount:,.2f} to ₦{new_amount:,.2f} would result in a negative balance of ₦{new_balance:,.2f}.\n\nCurrent Balance: ₦{current_balance:,.2f}\nReduction Impact: -₦{impact:,.2f}\nResulting Balance: ₦{new_balance:,.2f}\n\nThis system does NOT allow negative balances."
+                        }, status=400)
+            else:  # expenditure
+                # If increasing expenditure, check if balance would go negative
+                if new_amount > old_amount:
+                    impact = new_amount - old_amount
+                    current_balance = new_branch.get_balance()
+                    new_balance = current_balance - impact
+                    
+                    if new_balance < 0:
+                        return JsonResponse({
+                            'success': False, 
+                            'message': f"❌ Cannot increase expenditure!\n\nIncreasing this expenditure from ₦{old_amount:,.2f} to ₦{new_amount:,.2f} would result in a negative balance of ₦{new_balance:,.2f}.\n\nCurrent Balance: ₦{current_balance:,.2f}\nAdditional Expenditure: ₦{impact:,.2f}\nResulting Balance: ₦{new_balance:,.2f}\n\nThis system does NOT allow negative balances. Please ensure sufficient funds before increasing expenditure."
+                        }, status=400)
+            
+            # If validation passed, proceed with update
+            transaction.amount = new_amount
+            transaction.branch = new_branch
+            
+            # Update categories based on transaction type
+            if transaction.transaction_type == 'income':
+                income_category_id = request.POST.get('income_category')
+                if income_category_id:
+                    transaction.income_category = IncomeCategory.objects.get(id=income_category_id)
+                else:
+                    transaction.income_category = None
+                transaction.expenditure_category = None
+            else:
+                expenditure_category_id = request.POST.get('expenditure_category')
+                if expenditure_category_id:
+                    transaction.expenditure_category = ExpenditureCategory.objects.get(id=expenditure_category_id)
+                else:
+                    transaction.expenditure_category = None
+                transaction.income_category = None
+            
+            transaction.save()
+            
+            return JsonResponse({'success': True, 'message': 'Transaction updated successfully'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@login_required
+def delete_transaction(request, transaction_id):
+    """
+    Delete transaction - super admin only
+    
+    IMPORTANT: This function affects branch balances and all financial calculations.
+    The accounting system is interdependent:
+    - Deleting an income transaction REDUCES the branch balance
+    - Deleting an expenditure transaction INCREASES the branch balance
+    - All reports and statistics are dynamically computed from transactions
+    - This operation cannot be undone and affects financial integrity
+    
+    PROTECTED: Transactions linked to fund allocations CANNOT be deleted.
+    """
+    if request.user.user_type != 'super_admin':
+        return JsonResponse({'success': False, 'message': 'Unauthorized access'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid method'}, status=405)
+    
+    try:
+        transaction = Transaction.objects.get(id=transaction_id)
+        
+        # BLOCK deletion of transactions linked to fund allocations
+        if transaction.fund_allocation:
+            allocation = transaction.fund_allocation
+            return JsonResponse({
+                'success': False, 
+                'message': (
+                    "❌ Cannot Delete Fund Allocation Transaction!\n\n"
+                    f"This {transaction.transaction_type} transaction is part of Fund Allocation #{allocation.id}:\n"
+                    f"• From: {allocation.from_branch.name}\n"
+                    f"• To: {allocation.to_branch.name}\n"
+                    f"• Amount: ₦{allocation.amount:,.2f}\n\n"
+                    "Transactions created by fund allocations are PROTECTED and cannot be deleted directly.\n\n"
+                    "To correct allocation errors:\n"
+                    "• Go to the 'Fund Allocations' page\n"
+                    "• Find the allocation (#{allocation.id})\n"
+                    "• Click the 'REVERSE' button\n"
+                    "• This will properly reverse BOTH transactions (income + expenditure)\n\n"
+                    "This protection ensures fund allocation integrity and maintains audit trail."
+                )
+            }, status=403)
+        
+        # VALIDATE: Check if deleting this transaction would cause negative balance
+        branch = transaction.branch
+        current_balance = branch.get_balance()
+        
+        if transaction.transaction_type == 'income':
+            # Deleting income reduces the balance
+            new_balance = current_balance - transaction.amount
+            
+            if new_balance < 0:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f"❌ Cannot delete this income transaction!\n\nDeleting this income of ₦{transaction.amount:,.2f} would result in a negative balance of ₦{new_balance:,.2f}.\n\nCurrent Balance: ₦{current_balance:,.2f}\nIncome to Delete: ₦{transaction.amount:,.2f}\nResulting Balance: ₦{new_balance:,.2f}\n\nThis system does NOT allow negative balances. You must first add more income or reduce expenditures before deleting this transaction."
+                }, status=400)
+        # Note: Deleting expenditure always increases balance, so no validation needed
+        
+        transaction.delete()
+        return JsonResponse({'success': True, 'message': 'Transaction deleted successfully'})
+    except Transaction.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Transaction not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)

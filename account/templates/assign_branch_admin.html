@@ -136,21 +136,48 @@
           </div>
 
         {% elif pre_selected_user %}
-          <!-- Show user selection for branch assignment -->
+          <!-- Show branch selection for user assignment -->
           <div class="mb-4">
-            <label for="{{ form.branch.id_for_label }}" class="form-label fw-bold">
+            <label class="form-label fw-bold">
               <i class="material-icons md-business text-primary" style="font-size: 20px; vertical-align: middle;"></i>
-              Select Branch
+              Select Branches for {{ pre_selected_user.get_full_name }}
             </label>
-            <p class="text-muted small mb-3">Choose which branch <strong>{{ pre_selected_user.get_full_name }}</strong> should manage</p>
-            {{ form.branch }}
-            {% if form.branch.errors %}
-              <div class="alert alert-danger mt-2">{{ form.branch.errors.0 }}</div>
-            {% endif %}
+            <p class="text-muted small mb-3">Choose which branches this user should manage</p>
+            
+            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+              {% for branch in all_branches %}
+                <div class="form-check mb-3 p-3 border rounded hover-highlight">
+                  <input class="form-check-input" type="checkbox" name="branches" value="{{ branch.id }}" id="branch_{{ branch.id }}"
+                         {% if branch.id in assigned_branch_ids %}checked{% endif %}>
+                  <label class="form-check-label w-100" for="branch_{{ branch.id }}">
+                    <div class="d-flex align-items-center">
+                      <div class="branch-avatar {% if branch.branch_type == 'main' %}bg-success{% else %}bg-primary{% endif %} text-white rounded-circle me-3">
+                        <i class="material-icons md-business" style="font-size: 20px;"></i>
+                      </div>
+                      <div>
+                        <strong class="d-block">{{ branch.name }}</strong>
+                        <small class="text-muted">
+                          <i class="material-icons md-location_on" style="font-size: 14px; vertical-align: middle;"></i>
+                          {{ branch.location }}
+                          {% if branch.branch_type == 'main' %}
+                            <span class="badge bg-success ms-2">Main Branch</span>
+                          {% endif %}
+                        </small>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              {% empty %}
+                <div class="text-center py-4">
+                  <i class="material-icons md-business" style="font-size: 3rem; color: #ccc;"></i>
+                  <p class="text-muted mt-2">No branches available.</p>
+                  <a href="{% url 'create_branch' %}" class="btn btn-sm btn-primary">
+                    <i class="material-icons md-add"></i> Create Branch
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
           </div>
-
-          <!-- Hidden checkbox for pre-selected user -->
-          <input type="hidden" name="admins" value="{{ pre_selected_user.id }}">
 
         {% else %}
           <!-- Normal mode: select both branch and admins -->
@@ -252,6 +279,16 @@
 }
 
 .admin-avatar {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.branch-avatar {
   width: 40px;
   height: 40px;
   display: inline-flex;

@@ -98,9 +98,15 @@ class ExpenditureCategory(models.Model):
         return f"{self.name} ({self.get_scope_display()})"
 
 class FundAllocation(models.Model):
-    """Track fund allocations from main branch to sub branches"""
-    from_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='fund_allocations_made')
-    to_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='fund_allocations_received')
+    """
+    Track fund allocations from main branch to sub branches.
+    
+    IMPORTANT: Fund allocations CANNOT be deleted (PROTECT constraint).
+    This preserves financial integrity and audit trail.
+    To correct errors, use the reversal feature instead.
+    """
+    from_branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name='fund_allocations_made')
+    to_branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name='fund_allocations_received')
     amount = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0.01)])
     description = models.TextField()
     allocated_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -109,6 +115,17 @@ class FundAllocation(models.Model):
 
     def __str__(self):
         return f"₦{self.amount} from {self.from_branch.name} to {self.to_branch.name}"
+    
+    def delete(self, *args, **kwargs):
+        """
+        Override delete to prevent direct deletion of fund allocations.
+        This is a safety measure to preserve audit trail.
+        """
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied(
+            "Fund allocations cannot be deleted for audit compliance. "
+            "Use the reversal feature instead to maintain complete transaction history."
+        )
 
     class Meta:
         ordering = ['-allocated_date']
